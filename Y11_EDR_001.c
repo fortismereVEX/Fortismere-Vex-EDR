@@ -1,7 +1,7 @@
-#pragma config(Motor,  port1,           leftMotor,     tmotorVex393_HBridge, openLoop, reversed)
-#pragma config(Motor,  port2,           leftMotor2,    tmotorVex393_MC29, openLoop, reversed)
-#pragma config(Motor,  port3,           rightMotor,    tmotorVex393_MC29, openLoop)
-#pragma config(Motor,  port4,           rightMotor2,   tmotorVex393_MC29, openLoop)
+#pragma config(Motor,  port1,           rightMotor,     tmotorVex393_HBridge, openLoop, reversed)
+#pragma config(Motor,  port2,           rightMotor2,    tmotorVex393_MC29, openLoop, reversed)
+#pragma config(Motor,  port3,           leftMotor,    tmotorVex393_MC29, openLoop)
+#pragma config(Motor,  port4,           leftMotor2,   tmotorVex393_MC29, openLoop)
 #pragma config(Motor,  port5,           middleMotor,   tmotorVex393_MC29, openLoop)
 #pragma config(Motor,  port6,           leftArmMotor,  tmotorVex393_MC29, openLoop)
 #pragma config(Motor,  port7,           rightArmMotor, tmotorVex393_MC29, openLoop, reversed)
@@ -14,12 +14,58 @@ short armUpSpeed = 127;
 short armDownSpeed = -127;
 short clawSpeed = 64;
 
+void autonomous()
+{
+	motor[leftArmMotor] = armUpSpeed;
+	motor[rightArmMotor] = armUpSpeed;
+
+	motor[leftMotor] = 100;
+	motor[leftMotor2] = 100;
+
+	motor[rightMotor] = 100;
+	motor[rightMotor2] = 100;
+
+	motor[clawMotor] = clawSpeed;
+	motor[clawMotor2] = -clawSpeed;
+
+	sleep(1000);
+
+	motor[clawMotor] = 0;
+	motor[clawMotor2] = 0;
+
+	sleep(500);
+
+	motor[leftArmMotor] = 0;
+	motor[rightArmMotor] = 0;
+
+	sleep(2000);
+
+	motor[leftMotor] = 0;
+	motor[leftMotor2] = 0;
+
+	motor[rightMotor] = 0;
+	motor[rightMotor2] = 0;
+}
+
 task main()
 {
 	while (true)
 	{
-		//motor[port1] = vexRT[Ch1];
-		//motor[port2] = vexRT[Ch1];
+		while (true)
+		{
+			if(vexRT[Btn7U] == 1)
+			{
+				autonomous();
+				break;
+			}
+			else if(vexRT[Btn7D] == 1)
+			{
+				break;
+			}
+			sleep(500);
+		}
+		motor[port1] = vexRT[Ch1];
+		motor[port2] = vexRT[Ch1];
 
 		motor[leftMotor] = vexRT[Ch2];
 		motor[leftMotor2] = vexRT[Ch2];
