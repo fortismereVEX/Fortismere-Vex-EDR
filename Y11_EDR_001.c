@@ -13,8 +13,9 @@
 short armUpSpeed = 127;
 short armDownSpeed = -127;
 short clawSpeed = 64;
+bool firstRun = true;
 
-void autonomous()
+void autonomous01()
 {
 	motor[leftArmMotor] = armUpSpeed;
 	motor[rightArmMotor] = armUpSpeed;
@@ -51,18 +52,17 @@ task main()
 {
 	while (true)
 	{
-		while (true)
+		while (firstRun == true)
 		{
 			if(vexRT[Btn7U] == 1)
 			{
-				autonomous();
-				break;
+				autonomous01();
+				firstRun = false;
 			}
 			else if(vexRT[Btn7D] == 1)
 			{
-				break;
+				firstRun = false;
 			}
-			sleep(500);
 		}
 		motor[port1] = vexRT[Ch1];
 		motor[port2] = vexRT[Ch1];
@@ -100,6 +100,22 @@ task main()
 		{
 			motor[clawMotor2] = clawSpeed;
 			motor[clawMotor] = -clawSpeed;
+		}
+		else if(vexRT[Btn8U])
+		{
+			motor[clawMotor] = clawSpeed;
+		}
+		else if(vexRT[Btn8D])
+		{
+			motor[clawMotor] = -clawSpeed;
+		}
+		else if(vexRT[Btn8L])
+		{
+			motor[clawMotor2] = clawSpeed;
+		}
+		else if(vexRT[Btn8R])
+		{
+			motor[clawMotor2] = -clawSpeed;
 		}
 		else
 		{
