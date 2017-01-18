@@ -35,6 +35,49 @@ void pre_auton()
 	// Example: clearing encoders, setting servo positions, ...
 }
 
+void DriveTo(int direction, int speed, int *motors)
+{
+	//motorStruct motors;
+	//Values of the motors to be returned L1 = 1, L2 = 2, R1 = 3, R2 = 4
+	//Makes the direction pos ABSALOUTE TYOU SILLYLL
+	direction = abs(direction);
+	//Makes the posative at in range of 0-360
+	while (direction >= 360)
+	{
+		direction -= 360;
+	}
+	//Motors
+  //0-90
+	if (0 <= direction && direction <= 90)
+	{
+		motors[0] = speed - (direction * 2);						//Pair 1
+		motors[1] = speed;															//Pair 2
+	}
+	//90-180
+	else if (90 < direction && direction <= 180)
+	{
+		motors[0] = -speed;														//Pair 1
+		motors[1] = speed - ((direction - 90) * 2);		//Pair 2
+	}
+	//180-270
+	else if (180 < direction && direction <= 270)
+	{
+		motors[0] = -speed + ((direction - 180) * 2);	//Pair 1
+		motors[1] = -speed;														//Pair 2
+	}
+	//270-360
+	else if (270 < direction && direction <= 360)
+	{
+		motors[0] = speed;															//Pair 1
+		motors[1] = -speed+ ((direction - 270) * 2);	 	//Pair 2
+	}
+	//update motor pair 1
+	motors[2] = motors[1];
+
+	//update motor pair 2
+	motors[3] = motors[0];
+}
+
 task autonomous()
 {
 	// ..........................................................................
@@ -48,11 +91,10 @@ task autonomous()
 task usercontrol()
 {
 	// User control code here, inside the loop
-
 	while(true)
 	{
+		/*
 		// Stuff for the arms
-
 		if (vexRT[Btn8U])
 		{
 			motor[armL1] = 127;
@@ -118,6 +160,28 @@ task usercontrol()
 		{
 			motor[claw1] = 0;
 			motor[claw2] = 0;
+		}
+		*/
+
+		if(vexRT[Ch3] || vexRT[Ch4])
+		{
+		int degrees = 0;
+
+		if(vexRT[Ch4] != 0)
+		{
+			degrees = atan((vexRT[Ch3]) / (vexRT[Ch4]));
+		}
+
+		int speed = sqrt(pow(vexRT[Ch3], 2) + pow(vexRT[Ch4], 2));
+
+		int motors[4];
+		DriveTo(degrees, speed, motors);
+
+		motor[wheelLF] = motors[0];
+		motor[wheelRF] = motors[1];
+
+		motor[wheelLB] = motors[2];
+		motor[wheelRB] = motors[3];
 		}
 	}
 }

@@ -1,0 +1,40 @@
+F B L R:
+
+if f/b > side
+	if f/b +
+		F
+	if f/b - 
+		B
+
+e-if l/r > f
+	if l/r +
+		L
+	if l/r -
+		R
+-----------------------------
+
+DIAGONAL:
+
+if +side > fwd - (fwd/4) and +side < fwd + (fwd/4)
+	
+	if both +
+		F+L
+	if both -
+		B+R
+
+	if f/b -, and l/r +
+		B+L
+	if f/b +, and l/r -
+		F+R
+-----------------------------
+
+TURN: 
+	
+if turn
+	turn
+
+
+
+|F L| F |F R| R |B R| B |B L| L |
+|---|---|---|---|---|---|---|---|
+| 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
