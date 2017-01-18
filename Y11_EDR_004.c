@@ -19,6 +19,11 @@
 //Main competition background code...do not modify!
 #include "Vex_Competition_Includes.c"
 
+#define PI 3.14159265358979323846f
+#define DEG2RAD( x ) ( (float)( x ) * (float)( (float)( PI ) / 180.0f ) )
+//#define DEG2RAD(x) x
+#define RAD2DEG( x ) ( (float)( x ) * (float)( 180.0f / (float)( PI ) ) )
+
 void pre_auton()
 {
 	// Set bStopTasksBetweenModes to false if you want to keep user created tasks
@@ -165,23 +170,23 @@ task usercontrol()
 
 		if(vexRT[Ch3] || vexRT[Ch4])
 		{
-		int degrees = 0;
+			int degrees = 0;
 
-		if(vexRT[Ch4] != 0)
-		{
-			degrees = atan((vexRT[Ch3]) / (vexRT[Ch4]));
-		}
+			if(vexRT[Ch4] != 0)
+			{
+				degrees = RAD2DEG(atan((vexRT[Ch3]) / (vexRT[Ch4])));
+			}
 
-		int speed = sqrt(pow(vexRT[Ch3], 2) + pow(vexRT[Ch4], 2));
+			int speed = sqrt(pow(vexRT[Ch3], 2) + pow(vexRT[Ch4], 2));
 
-		int motors[4];
-		DriveTo(degrees, speed, motors);
+			int motors[4];
+			DriveTo(degrees, speed, motors);
 
-		motor[wheelLF] = motors[0];
-		motor[wheelRF] = motors[1];
+			motor[wheelLF] = motors[0];
+			motor[wheelLB] = motors[1];
 
-		motor[wheelLB] = motors[2];
-		motor[wheelRB] = motors[3];
+			motor[wheelRF] = motors[2];
+			motor[wheelRB] = motors[3];
 		}
 	}
 }
