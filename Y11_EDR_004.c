@@ -19,10 +19,10 @@
 //Main competition background code...do not modify!
 #include "Vex_Competition_Includes.c"
 
-#define PI 3.14159265358979323846f
-#define DEG2RAD( x ) ( (float)( x ) * (float)( (float)( PI ) / 180.0f ) )
+#define PI 3.14159265358979323846
+#define DEG2RAD( x ) ( (float)( x ) * (float)( (float)( PI ) / 180.0 ) )
 //#define DEG2RAD(x) x
-#define RAD2DEG( x ) ( (float)( x ) * (float)( 180.0f / (float)( PI ) ) )
+#define RAD2DEG( x ) ( (float)( x ) * (float)( 180.0 / (float)( PI ) ) )
 
 void pre_auton()
 {
@@ -52,35 +52,51 @@ void DriveTo(int direction, int speed, int *motors)
 		direction -= 360;
 	}
 	//Motors
-  //0-90
+    //0-90
 	if (0 <= direction && direction <= 90)
 	{
-		motors[0] = speed - (direction * 2);						//Pair 1
-		motors[1] = speed;															//Pair 2
+		motors[0] = 90 - (direction * 2);						//Pair 1
+		motors[1] = 90;															//Pair 2
 	}
 	//90-180
 	else if (90 < direction && direction <= 180)
 	{
-		motors[0] = -speed;														//Pair 1
-		motors[1] = speed - ((direction - 90) * 2);		//Pair 2
+		motors[0] = -90;														//Pair 1
+		motors[1] = 90 - ((direction - 90) * 2);		//Pair 2
 	}
 	//180-270
 	else if (180 < direction && direction <= 270)
 	{
-		motors[0] = -speed + ((direction - 180) * 2);	//Pair 1
-		motors[1] = -speed;														//Pair 2
+		motors[0] = -90 + ((direction - 180) * 2);	//Pair 1
+		motors[1] = -90;														//Pair 2
 	}
 	//270-360
 	else if (270 < direction && direction <= 360)
 	{
-		motors[0] = speed;															//Pair 1
-		motors[1] = -speed+ ((direction - 270) * 2);	 	//Pair 2
+		motors[0] = 90;															//Pair 1
+		motors[1] = -90+ ((direction - 270) * 2);	 	//Pair 2
 	}
+
+	motors[0] = (float)motors[0] * 1.41111111111;
+	motors[1] = (float)motors[1] * 1.41111111111;
+
 	//update motor pair 1
-	motors[2] = motors[1];
+	motors[2] = -motors[1];
 
 	//update motor pair 2
-	motors[3] = motors[0];
+	motors[3] = -motors[0];
+}
+
+void DoMotor(int degrees, int speed)
+{
+	int motors[4];
+	DriveTo(degrees, speed, motors);
+
+	motor[wheelLF] = motors[0];
+	motor[wheelLB] = motors[1];
+
+	motor[wheelRF] = motors[2];
+	motor[wheelRB] = motors[3];
 }
 
 task autonomous()
@@ -98,17 +114,16 @@ task usercontrol()
 	// User control code here, inside the loop
 	while(true)
 	{
-		/*
+
 		// Stuff for the arms
-		if (vexRT[Btn8U])
+		if (vexRT[Btn5U])
 		{
 			motor[armL1] = 127;
 			motor[armL2] = 127;
 			motor[armR1] = 127;
 			motor[armR2] = 127;
-
 		}
-		else if (vexRT[Btn8D])
+		else if (vexRT[Btn5D])
 		{
 			motor[armL1] = -127;
 			motor[armL2] = -127;
@@ -125,31 +140,6 @@ task usercontrol()
 
 		// fwd + strafe
 
-		if (abs(vexRT[Ch4]) > abs(vexRT[Ch3]))
-		{
-			motor[wheelLF] = vexRT[Ch4];
-			motor[wheelLB] = -vexRT[Ch4];
-
-			motor[wheelRF] = vexRT[Ch4];
-			motor[wheelRB] = -vexRT[Ch4];
-		}
-		else
-		{
-			motor[wheelLF] = vexRT[Ch3];
-			motor[wheelLB] = vexRT[Ch3];
-
-			motor[wheelRF] = -vexRT[Ch3];
-			motor[wheelRB] = -vexRT[Ch3];
-		}
-
-		// turn
-		if (vexRT[Ch1])
-		{
-			motor[wheelLF] = vexRT[Ch1];
-			motor[wheelLB] = vexRT[Ch1];
-			motor[wheelRF] = vexRT[Ch1];
-			motor[wheelRB] = vexRT[Ch1];
-		}
 
 		if(vexRT(Btn6D))
 		{
@@ -166,27 +156,55 @@ task usercontrol()
 			motor[claw1] = 0;
 			motor[claw2] = 0;
 		}
-		*/
 
-		if(vexRT[Ch3] || vexRT[Ch4])
+		//Beggining of problem
+		if(abs(vexRT[Ch3]) > 10 || abs(vexRT[Ch4]) > 10) //Possible cause
 		{
 			int degrees = 0;
 
-			if(vexRT[Ch4] != 0)
+			if(vexRT[Ch3] != 0) //Possible cause
 			{
-				degrees = RAD2DEG(atan((vexRT[Ch3]) / (vexRT[Ch4])));
+				degrees = RAD2DEG(atan((vexRT[Ch4]) / (vexRT[Ch3])));
 			}
 
 			int speed = sqrt(pow(vexRT[Ch3], 2) + pow(vexRT[Ch4], 2));
 
-			int motors[4];
-			DriveTo(degrees, speed, motors);
+			DoMotor(degrees, speed); //Runs no matter what
+		}
+		//End of problem
+		else if(vexRT[Btn7U])
+		{
+			DoMotor(0, 127);
+		}
+		else if(vexRT[Btn7L])
+		{
+			DoMotor(90, 127);
+		}
+		else if(vexRT[Btn7D])
+		{
+			DoMotor(180, 127);
+		}
+		else if(vexRT[Btn7R])
+		{
+			DoMotor(270, 127);
+		}
+		else
+		{
+			motor[wheelLF] = 0;
+			motor[wheelLB] = 0;
 
-			motor[wheelLF] = motors[0];
-			motor[wheelLB] = motors[1];
+			motor[wheelRF] = 0;
+			motor[wheelRB] = 0;
+		}
 
-			motor[wheelRF] = motors[2];
-			motor[wheelRB] = motors[3];
+
+		if(vexRT[Btn8R])
+		{
+			motor[wheelLF] = 0;
+			motor[wheelLB] = 0;
+
+			motor[wheelRF] = 0;
+			motor[wheelRB] = 0;
 		}
 	}
 }
