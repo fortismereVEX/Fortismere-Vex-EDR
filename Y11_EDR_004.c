@@ -52,7 +52,7 @@ void DriveTo(int direction, int speed, int *motors)
 		direction -= 360;
 	}
 	//Motors
-    //0-90
+	//0-90
 	if (0 <= direction && direction <= 90)
 	{
 		motors[0] = 90 - (direction * 2);						//Pair 1
@@ -157,19 +157,71 @@ task usercontrol()
 			motor[claw2] = 0;
 		}
 
-		//Beggining of problem
-		if(abs(vexRT[Ch3]) > 10 || abs(vexRT[Ch4]) > 10) //Possible cause
+		// joystick doesnt sit at exact zero
+		// it might be better to get the resting value onetime and use that instead?
+		if(abs(vexRT[Ch3]) > 10 || abs(vexRT[Ch4]) > 10)
 		{
+			int extraDegrees = 0;
+			
+			// get the sign bits for each value
+			int sgn3 = sgn(vexRT[Ch3]); // y
+			int sgn4 = sgn(vexRT[Ch4]); // x
+			
+			// check sign bits
+			if(sgn4 == 1 && sgn3 == 1)
+			{
+				// top right - no extra degrees
+			}
+			else if(sgn4 == 1 && sgn3 == -1)
+			{
+				// bottom right - 90 extra degrees
+				extraDegrees = 90;
+			}
+			else if(sgn4 == -1 && sgn3 == -1)
+			{
+				// bottom left - 180 extra degrees
+				extraDegrees = 180;
+			}
+			else if(sgn4 == -1 && sgn3 == 1)
+			{
+				// top left - 270 extra degrees;
+				extraDegrees = 270;
+			}
+			else if(abs(vexRT[Ch4] < 20) && sgn3 == -1)
+			{
+				// we dont have to handle the 0 case for straight up as it will be 0
+				// straight down - extra angle should be 180
+				extraDegrees = 180; 
+			}
+			else if(sgn4 == 1 && abs(vexRT[Ch4]) < 20)
+			{
+				// straight right - extra angle should be 90
+				extraDegrees = 90;
+			}
+			else if(sgn4 == -1 && abs(vexRT[Ch4]) < 20)
+			{
+				// straight left - extra angle should be 270
+				extraDegrees = 270;
+			}
+			
+			// TODO: do we need to handle 0 case?
+			
 			int degrees = 0;
 
-			if(vexRT[Ch3] != 0) //Possible cause
+			if(abs(sgn3 + sgn4) != 2)
 			{
+				// regular case
 				degrees = RAD2DEG(atan((vexRT[Ch4]) / (vexRT[Ch3])));
+			}
+			else
+			{
+				// handle this case for bottom right and top left where we need the other angle
+				degrees = RAD2DEG(atan((vexRT[Ch3]) / (vexRT[Ch4])));
 			}
 
 			int speed = sqrt(pow(vexRT[Ch3], 2) + pow(vexRT[Ch4], 2));
 
-			DoMotor(degrees, speed); //Runs no matter what
+			DoMotor(degrees, speed);
 		}
 		//End of problem
 		else if(vexRT[Btn7U])
