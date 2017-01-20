@@ -40,51 +40,112 @@ void pre_auton()
 	// Example: clearing encoders, setting servo positions, ...
 }
 
+int DirCalc(int x, int y)
+{
+	//dir to move
+	int dir = 0;
+
+	//if not moving
+	if(abs(x) < 10 && abs(y) < 10)
+	{
+		return -1;
+	}
+
+	//segment locator
+	//segment 1 irrelevant
+	//segment 2
+	if (sgn(x) == 1 && sgn(y) == -1)
+	{
+		dir += 90;
+	}
+
+	//segment 3
+	else if (sgn(x) == -1 && sgn(y) == -1)
+	{
+		dir += 90;
+	}
+
+	//segment 4
+	else if (sgn(x) == -1 && sgn(y) == 1)
+	{
+		dir += 90;
+	}
+
+	if (x != 0 || y != 0)
+	{
+		if (abs(sgn(x) + sgn(y)) == 2)
+		{
+			dir += abs(round(atan(x / y) * 180 / PI));
+		}
+		else
+		{
+			dir += abs(round(atan(y / x) * 180 / PI));
+		}
+	}
+	return dir;
+}
+
+
 void DriveTo(int direction, int speed, int *motors)
 {
 	//motorStruct motors;
 	//Values of the motors to be returned L1 = 1, L2 = 2, R1 = 3, R2 = 4
 	//Makes the direction pos ABSALOUTE TYOU SILLYLL
-	direction = abs(direction);
-	//Makes the posative at in range of 0-360
-	while (direction >= 360)
+
+	if (direction == -1)
 	{
-		direction -= 360;
-	}
-	//Motors
-	//0-90
-	if (0 <= direction && direction <= 90)
-	{
-		motors[0] = 90 - (direction * 2);						//Pair 1
-		motors[1] = 90;															//Pair 2
-	}
-	//90-180
-	else if (90 < direction && direction <= 180)
-	{
-		motors[0] = -90;														//Pair 1
-		motors[1] = 90 - ((direction - 90) * 2);		//Pair 2
-	}
-	//180-270
-	else if (180 < direction && direction <= 270)
-	{
-		motors[0] = -90 + ((direction - 180) * 2);	//Pair 1
-		motors[1] = -90;														//Pair 2
-	}
-	//270-360
-	else if (270 < direction && direction <= 360)
-	{
-		motors[0] = 90;															//Pair 1
-		motors[1] = -90+ ((direction - 270) * 2);	 	//Pair 2
+			motors[0] = 0;
+			motors[1] = 0;
+
+		//update motor pair 1
+		motors[2] = -motors[1];
+
+		//update motor pair 2
+		motors[3] = -motors[0];
 	}
 
-	motors[0] = (float)motors[0] * 1.41111111111;
-	motors[1] = (float)motors[1] * 1.41111111111;
+	else
+	{
+		//Makes the posative at in range of 0-360
+		while (direction >= 360)
+		{
+			direction -= 360;
+		}
+		//Motors
+		//0-90
+		if (0 <= direction && direction <= 90)
+		{
+			motors[0] = 90 - (direction * 2);						//Pair 1
+			motors[1] = 90;															//Pair 2
+		}
+		//90-180
+		else if (90 < direction && direction <= 180)
+		{
+			motors[0] = -90;														//Pair 1
+			motors[1] = 90 - ((direction - 90) * 2);		//Pair 2
+		}
+		//180-270
+		else if (180 < direction && direction <= 270)
+		{
+			motors[0] = -90 + ((direction - 180) * 2);	//Pair 1
+			motors[1] = -90;														//Pair 2
+		}
+		//270-360
+		else if (270 < direction && direction <= 360)
+		{
+			motors[0] = 90;															//Pair 1
+			motors[1] = -90+ ((direction - 270) * 2);	 	//Pair 2
+		}
 
-	//update motor pair 1
-	motors[2] = -motors[1];
+		motors[0] = (float)motors[0] * 1.41111111111;
+		motors[1] = (float)motors[1] * 1.41111111111;
 
-	//update motor pair 2
-	motors[3] = -motors[0];
+		//update motor pair 1
+		motors[2] = -motors[1];
+
+		//update motor pair 2
+		motors[3] = -motors[0];
+	}
 }
 
 void DoMotor(int degrees, int speed)
@@ -157,29 +218,39 @@ task usercontrol()
 			motor[claw2] = 0;
 		}
 
+		//DoMotor(DirCalc(vexRT[Ch4],vexRT[Ch3]),127);
+
 		// joystick doesnt sit at exact zero
 		// it might be better to get the resting value onetime and use that instead?
+
+
 		if(abs(vexRT[Ch3]) > 10 || abs(vexRT[Ch4]) > 10)
 		{
 			int extraDegrees = 0;
-			
+
 			// get the sign bits for each value
 			int sgn3 = sgn(vexRT[Ch3]); // y
 			int sgn4 = sgn(vexRT[Ch4]); // x
-			
+
 			// check sign bits
-			if(abs(vexRT[Ch4] < 20) && sgn3 == -1)
+			if(abs(vexRT[Ch4]) < 10 && sgn3 == 1)
 			{
 				// we dont have to handle the 0 case for straight up as it will be 0
 				// straight down - extra angle should be 180
-				extraDegrees = 180; 
+				extraDegrees = 0;
 			}
-			else if(sgn4 == 1 && abs(vexRT[Ch4]) < 20)
+			else if(abs(vexRT[Ch4]) < 10 && sgn3 == -1)
+			{
+				// we dont have to handle the 0 case for straight up as it will be 0
+				// straight down - extra angle should be 180
+				extraDegrees = 180;
+			}
+			else if(sgn4 == 1 && abs(vexRT[Ch3]) < 10)
 			{
 				// straight right - extra angle should be 90
 				extraDegrees = 90;
 			}
-			else if(sgn4 == -1 && abs(vexRT[Ch4]) < 20)
+			else if(sgn4 == -1 && abs(vexRT[Ch3]) < 10)
 			{
 				// straight left - extra angle should be 270
 				extraDegrees = 270;
@@ -203,26 +274,29 @@ task usercontrol()
 				// top left - 270 extra degrees;
 				extraDegrees = 270;
 			}
-			
+
 			// TODO: do we need to handle 0 case?
-			
+
 			int degrees = 0;
 
-			if(abs(sgn3 + sgn4) != 2)
+			if(abs(sgn3 + sgn4) == 2)
 			{
 				// regular case
-				degrees = RAD2DEG(atan((vexRT[Ch4]) / (vexRT[Ch3])));
+				if(vexRT[Ch3] != 0)
+					degrees = abs(RAD2DEG(atan((vexRT[Ch4]) / (vexRT[Ch3]))));
 			}
 			else
 			{
 				// handle this case for bottom right and top left where we need the other angle
-				degrees = RAD2DEG(atan((vexRT[Ch3]) / (vexRT[Ch4])));
+				if(vexRT[Ch4] != 0)
+					degrees = abs(RAD2DEG(atan((vexRT[Ch3]) / (vexRT[Ch4]))));
 			}
 
 			int speed = sqrt(pow(vexRT[Ch3], 2) + pow(vexRT[Ch4], 2));
 
-			DoMotor(degrees, speed);
+			DoMotor(degrees + extraDegrees, speed);
 		}
+
 		//End of problem
 		else if(vexRT[Btn7U])
 		{
@@ -248,6 +322,7 @@ task usercontrol()
 			motor[wheelRF] = 0;
 			motor[wheelRB] = 0;
 		}
+
 
 
 		if(vexRT[Btn8R])
