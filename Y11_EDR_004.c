@@ -168,7 +168,23 @@ task usercontrol()
 			int sgn4 = sgn(vexRT[Ch4]); // x
 			
 			// check sign bits
-			if(sgn4 == 1 && sgn3 == 1)
+			if(abs(vexRT[Ch4] < 20) && sgn3 == -1)
+			{
+				// we dont have to handle the 0 case for straight up as it will be 0
+				// straight down - extra angle should be 180
+				extraDegrees = 180; 
+			}
+			else if(sgn4 == 1 && abs(vexRT[Ch4]) < 20)
+			{
+				// straight right - extra angle should be 90
+				extraDegrees = 90;
+			}
+			else if(sgn4 == -1 && abs(vexRT[Ch4]) < 20)
+			{
+				// straight left - extra angle should be 270
+				extraDegrees = 270;
+			}
+			else if(sgn4 == 1 && sgn3 == 1)
 			{
 				// top right - no extra degrees
 			}
@@ -185,22 +201,6 @@ task usercontrol()
 			else if(sgn4 == -1 && sgn3 == 1)
 			{
 				// top left - 270 extra degrees;
-				extraDegrees = 270;
-			}
-			else if(abs(vexRT[Ch4] < 20) && sgn3 == -1)
-			{
-				// we dont have to handle the 0 case for straight up as it will be 0
-				// straight down - extra angle should be 180
-				extraDegrees = 180; 
-			}
-			else if(sgn4 == 1 && abs(vexRT[Ch4]) < 20)
-			{
-				// straight right - extra angle should be 90
-				extraDegrees = 90;
-			}
-			else if(sgn4 == -1 && abs(vexRT[Ch4]) < 20)
-			{
-				// straight left - extra angle should be 270
 				extraDegrees = 270;
 			}
 			
