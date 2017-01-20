@@ -42,7 +42,7 @@ void pre_auton()
 
 int calcAngle(int x, int y)
 {
-	int theta = abs(atan(y / x));
+	int theta = abs(atan(y / x) * (180 / PI));
 
 	int outAngle = 0;
 
@@ -50,18 +50,20 @@ int calcAngle(int x, int y)
 	{
 		outAngle = 90 - theta;
 	}
-	else if(sgn(x) == 1 && sgn(y) == 0)
+	else if(sgn(x) == 1 && sgn(y) == -1) //bottom right quadrant
 	{
 		outAngle = 180 - theta;
 	}
-        else if(sgn(x) == 1 && sgn(y) == 0)
+  else if(sgn(x) == -1 && sgn(y) == -1) //bottom left quadrant
 	{
-		outAngle = 180 - theta;
+		outAngle = 270 - theta;
 	}
-	else if(sgn(x) == 1 && sgn(y) == 0)
+	else if(sgn(x) == -1 && sgn(y) == 1) //top left quadrant
 	{
-		outAngle = 180 - theta;
+		outAngle = 360 - theta;
 	}
+
+	return outAngle;
 }
 
 
@@ -69,62 +71,46 @@ void DriveTo(int direction, int speed, int *motors)
 {
 	//motorStruct motors;
 	//Values of the motors to be returned L1 = 1, L2 = 2, R1 = 3, R2 = 4
-	//Makes the direction pos ABSALOUTE TYOU SILLYLL
 
-	if (direction == -1)
+	//Makes the posative at in range of 0-360
+	while (direction >= 360)
 	{
-			motors[0] = 0;
-			motors[1] = 0;
-
-		//update motor pair 1
-		motors[2] = -motors[1];
-
-		//update motor pair 2
-		motors[3] = -motors[0];
+		direction -= 360;
+	}
+	//Motors
+	//0-90
+	if (0 <= direction && direction <= 90)
+	{
+		motors[0] = 90 - (direction * 2);						//Pair 1
+		motors[1] = 90;															//Pair 2
+	}
+	//90-180
+	else if (90 < direction && direction <= 180)
+	{
+		motors[0] = -90;														//Pair 1
+		motors[1] = 90 - ((direction - 90) * 2);		//Pair 2
+	}
+	//180-270
+	else if (180 < direction && direction <= 270)
+	{
+		motors[0] = -90 + ((direction - 180) * 2);	//Pair 1
+		motors[1] = -90;														//Pair 2
+	}
+	//270-360
+	else if (270 < direction && direction <= 360)
+	{
+		motors[0] = 90;															//Pair 1
+		motors[1] = -90+ ((direction - 270) * 2);	 	//Pair 2
 	}
 
-	else
-	{
-		//Makes the posative at in range of 0-360
-		while (direction >= 360)
-		{
-			direction -= 360;
-		}
-		//Motors
-		//0-90
-		if (0 <= direction && direction <= 90)
-		{
-			motors[0] = 90 - (direction * 2);						//Pair 1
-			motors[1] = 90;															//Pair 2
-		}
-		//90-180
-		else if (90 < direction && direction <= 180)
-		{
-			motors[0] = -90;														//Pair 1
-			motors[1] = 90 - ((direction - 90) * 2);		//Pair 2
-		}
-		//180-270
-		else if (180 < direction && direction <= 270)
-		{
-			motors[0] = -90 + ((direction - 180) * 2);	//Pair 1
-			motors[1] = -90;														//Pair 2
-		}
-		//270-360
-		else if (270 < direction && direction <= 360)
-		{
-			motors[0] = 90;															//Pair 1
-			motors[1] = -90+ ((direction - 270) * 2);	 	//Pair 2
-		}
+	motors[0] = (float)motors[0] * 1.41111111111;
+	motors[1] = (float)motors[1] * 1.41111111111;
 
-		motors[0] = (float)motors[0] * 1.41111111111;
-		motors[1] = (float)motors[1] * 1.41111111111;
+	//update motor pair 1
+	motors[2] = -motors[1];
 
-		//update motor pair 1
-		motors[2] = -motors[1];
-
-		//update motor pair 2
-		motors[3] = -motors[0];
-	}
+	//update motor pair 2
+	motors[3] = -motors[0];
 }
 
 void DoMotor(int degrees, int speed)
@@ -178,9 +164,7 @@ task usercontrol()
 			motor[armR2] = 0;
 		}
 
-		// fwd + strafe
-
-
+		// claws
 		if(vexRT(Btn6D))
 		{
 			motor[claw1] = 127;
@@ -197,20 +181,13 @@ task usercontrol()
 			motor[claw2] = 0;
 		}
 
-		//DoMotor(DirCalc(vexRT[Ch4],vexRT[Ch3]),127);
-
-		// joystick doesnt sit at exact zero
-		// it might be better to get the resting value onetime and use that instead?
-
-
 		if(abs(vexRT[Ch3]) > 10 || abs(vexRT[Ch4]) > 10)
 		{
 			int speed = sqrt(pow(vexRT[Ch3], 2) + pow(vexRT[Ch4], 2));
-
-			DoMotor(convertJoystick(vexRT[Ch4], vexRT[Ch3]), speed);
+			DoMotor(calcAngle(vexRT[Ch4], vexRT[Ch3]), speed);
 		}
 
-		//End of problem
+		//debug direction buttons
 		else if(vexRT[Btn7U])
 		{
 			DoMotor(0, 127);
@@ -236,8 +213,7 @@ task usercontrol()
 			motor[wheelRB] = 0;
 		}
 
-
-
+		//emergency stop
 		if(vexRT[Btn8R])
 		{
 			motor[wheelLF] = 0;
