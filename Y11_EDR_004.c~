@@ -19,7 +19,7 @@
 //Main competition background code...do not modify!
 #include "Vex_Competition_Includes.c"
 
-#define PI 3.14159265358979323846
+#define PI (3.14159265358979323846)
 #define DEG2RAD( x ) ( (float)( x ) * (float)( (float)( PI ) / 180.0 ) )
 //#define DEG2RAD(x) x
 #define RAD2DEG( x ) ( (float)( x ) * (float)( 180.0 / (float)( PI ) ) )
@@ -40,28 +40,60 @@ void pre_auton()
 	// Example: clearing encoders, setting servo positions, ...
 }
 
-int calcAngle(int x, int y)
+int DirCalc(int x, int y)
 {
-	int theta = abs(atan(y / x));
+	//dir to move
+	int dir = 0;
 
-	int outAngle = 0;
+	//if not moving
+	if(abs(x) < 10 && abs(y) < 10)
+	{
+		return -1;
+	}
 
-	if(sgn(x) == 1 && sgn(y) == 1) // top right quadrant
+	//segment locator
+	//segment 1 irrelevant
+	//segment 2
+	if (sgn(x) == 1 && sgn(y) == -1)
 	{
-		outAngle = 90 - theta;
+		dir += 90;
 	}
-	else if(sgn(x) == 1 && sgn(y) == 0)
+
+	//segment 3
+	else if (sgn(x) == -1 && sgn(y) == -1)
 	{
-		outAngle = 180 - theta;
+		dir += 90;
 	}
-        else if(sgn(x) == 1 && sgn(y) == 0)
+
+	//segment 4
+	else if (sgn(x) == -1 && sgn(y) == 1)
 	{
-		outAngle = 180 - theta;
+		dir += 90;
 	}
-	else if(sgn(x) == 1 && sgn(y) == 0)
+
+	if (x != 0 || y != 0)
 	{
-		outAngle = 180 - theta;
+		if (abs(sgn(x) + sgn(y)) == 2)
+		{
+			dir += abs(round(atan(x / y) * 180 / PI));
+		}
+		else
+		{
+			dir += abs(round(atan(y / x) * 180 / PI));
+		}
 	}
+	return dir;
+}
+
+int convertJoystick(int x, int y)
+{
+	if(x == 0 || y == 0)
+		return 0;
+	int angle = atan2(-y, x);
+	if(angle < 0) angle += (PI * 2);
+	angle = (angle + (int)((PI / 2) % (PI * 2)));
+
+	return angle;
 }
 
 
@@ -205,6 +237,77 @@ task usercontrol()
 
 		if(abs(vexRT[Ch3]) > 10 || abs(vexRT[Ch4]) > 10)
 		{
+			/*
+			int extraDegrees = 0;
+
+			// get the sign bits for each value
+			int sgn3 = sgn(vexRT[Ch3]); // y
+			int sgn4 = sgn(vexRT[Ch4]); // x
+
+			// check sign bits
+
+
+			if(abs(vexRT[Ch4]) < 5 && sgn3 == 1)
+			{
+				// we dont have to handle the 0 case for straight up as it will be 0
+				// straight down - extra angle should be 180
+				extraDegrees = 0;
+			}
+			else if(abs(vexRT[Ch4]) < 5 && sgn3 == -1)
+			{
+				// we dont have to handle the 0 case for straight up as it will be 0
+				// straight down - extra angle should be 180
+				extraDegrees = 180;
+			}
+			else if(sgn4 == 1 && abs(vexRT[Ch3]) < 5)
+			{
+				// straight right - extra angle should be 90
+				extraDegrees = 270;
+			}
+			else if(sgn4 == -1 && abs(vexRT[Ch3]) < 5)
+			{
+				// straight left - extra angle should be 270
+				extraDegrees = 90;
+			}
+			else if(sgn4 == 1 && sgn3 == 1)
+			{
+				// top right - no extra degrees
+			}
+			else if(sgn4 == 1 && sgn3 == -1)
+			{
+				// bottom right - 90 extra degrees
+				extraDegrees = 270;
+			}
+			else if(sgn4 == -1 && sgn3 == -1)
+			{
+				// bottom left - 180 extra degrees
+				extraDegrees = 180;
+			}
+			else if(sgn4 == -1 && sgn3 == 1)
+			{
+				// top left - 270 extra degrees;
+				extraDegrees = 90;
+			}
+
+			// TODO: do we need to handle 0 case?
+
+			int degrees = 0;
+
+			if(abs(sgn3 + sgn4) == 2)
+			{
+				// regular case
+				if(vexRT[Ch3] != 0)
+					degrees = abs(RAD2DEG(atan((vexRT[Ch4]) / (vexRT[Ch3]))));
+			}
+			else
+			{
+				// handle this case for bottom right and top left where we need the other angle
+				if(vexRT[Ch4] != 0)
+					degrees = abs(RAD2DEG(atan((vexRT[Ch3]) / (vexRT[Ch4]))));
+			}
+
+			*/
+
 			int speed = sqrt(pow(vexRT[Ch3], 2) + pow(vexRT[Ch4], 2));
 
 			DoMotor(convertJoystick(vexRT[Ch4], vexRT[Ch3]), speed);
