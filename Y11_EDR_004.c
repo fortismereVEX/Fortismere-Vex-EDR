@@ -25,6 +25,9 @@
 #define RAD2DEG( x ) ( (float)( x ) * (float)( 180.0 / (float)( PI ) ) )
 
 #define RADPI (180 / PI)
+#define HALFPI (1/2) * PI)
+#define THREEQUATERPI (1/3) * PI)
+#define TWOPI TWOPI
 
 void pre_auton()
 {
@@ -88,34 +91,34 @@ void DriveTo(int direction, int speed, int *motors)
 	//Values of the motors to be returned L1 = 1, L2 = 2, R1 = 3, R2 = 4
 
 	//Makes the posative at in range of 0-360
-	while (direction >= (2 * PI))
+	while (direction >= TWOPI)
 	{
-		direction -= (2 * PI);
+		direction -= TWOPI;
 	}
 	//Motors
 	//0-90
-	if (0 <= direction && direction <= ((1/2) * PI))
+	if (0 <= direction && direction <= HALFPI)
 	{
-		motors[0] = ((1/2) * PI) - (direction * 2);						//Pair 1
-		motors[1] = ((1/2) * PI);															//Pair 2
+		motors[0] = HALFPI - (direction * 2);						//Pair 1
+		motors[1] = HALFPI;															//Pair 2
 	}
 	//90-180
-	else if (((1/2) * PI) < direction && direction <= PI)
+	else if (HALFPI < direction && direction <= PI)
 	{
-		motors[0] = -((1/2) * PI);														//Pair 1
-		motors[1] = ((1/2) * PI) - ((direction - ((1/2) * PI)) * 2);		//Pair 2
+		motors[0] = - HALFPI;														//Pair 1
+		motors[1] = HALFPI - ((direction - HALFPI) * 2);		//Pair 2
 	}
 	//180-270
-	else if (PI < direction && direction <= ((3/4) * PI))
+	else if (PI < direction && direction <= THREEQUATERPI)
 	{
-		motors[0] = -((1/2) * PI) + ((direction - PI) * 2);	//Pair 1
-		motors[1] = -((1/2) * PI);														//Pair 2
+		motors[0] = - HALFPI + ((direction - PI) * 2);	//Pair 1
+		motors[1] = - HALFPI;														//Pair 2
 	}
 	//270-360
-	else if (((3/4) * PI) < direction && direction <= (2 * PI))
+	else if (THREEQUATERPI < direction && direction <= TWOPI)
 	{
-		motors[0] = ((1/2) * PI);															//Pair 1
-		motors[1] = -((1/2) * PI)+ ((direction - ((3/4) * PI) * 2));	 	//Pair 2
+		motors[0] = HALFPI;															//Pair 1
+		motors[1] = -HALFPI+ ((direction - THREEQUATERPI * 2));	 	//Pair 2
 	}
 
 	motors[0] = (float)motors[0] * 80.8507110907;
