@@ -24,6 +24,8 @@
 //#define DEG2RAD(x) x
 #define RAD2DEG( x ) ( (float)( x ) * (float)( 180.0 / (float)( PI ) ) )
 
+#define RADPI (180 / PI)
+
 void pre_auton()
 {
 	// Set bStopTasksBetweenModes to false if you want to keep user created tasks
@@ -40,7 +42,20 @@ void pre_auton()
 	// Example: clearing encoders, setting servo positions, ...
 }
 
-int calcAngle(int x, int y)
+int calcAngle2(int x, int y)
+{
+	float theta = atan(y / x) * (180 / PI);
+
+	float psi = 90 - theta;
+
+	if (psi < 0)
+		psi += 360;
+
+	return (int)psi;
+}
+
+
+/*int calcAngle(int x, int y)
 {
 	int theta = abs(atan(y / x) * (180 / PI));
 
@@ -64,7 +79,7 @@ int calcAngle(int x, int y)
 	}
 
 	return outAngle;
-}
+}*/
 
 
 void DriveTo(int direction, int speed, int *motors)
@@ -73,38 +88,38 @@ void DriveTo(int direction, int speed, int *motors)
 	//Values of the motors to be returned L1 = 1, L2 = 2, R1 = 3, R2 = 4
 
 	//Makes the posative at in range of 0-360
-	while (direction >= 360)
+	while (direction >= (2 * PI))
 	{
-		direction -= 360;
+		direction -= (2 * PI);
 	}
 	//Motors
 	//0-90
-	if (0 <= direction && direction <= 90)
+	if (0 <= direction && direction <= ((1/2) * PI))
 	{
-		motors[0] = 90 - (direction * 2);						//Pair 1
-		motors[1] = 90;															//Pair 2
+		motors[0] = ((1/2) * PI) - (direction * 2);						//Pair 1
+		motors[1] = ((1/2) * PI);															//Pair 2
 	}
 	//90-180
-	else if (90 < direction && direction <= 180)
+	else if (((1/2) * PI) < direction && direction <= PI)
 	{
-		motors[0] = -90;														//Pair 1
-		motors[1] = 90 - ((direction - 90) * 2);		//Pair 2
+		motors[0] = -((1/2) * PI);														//Pair 1
+		motors[1] = ((1/2) * PI) - ((direction - ((1/2) * PI)) * 2);		//Pair 2
 	}
 	//180-270
-	else if (180 < direction && direction <= 270)
+	else if (PI < direction && direction <= ((3/4) * PI))
 	{
-		motors[0] = -90 + ((direction - 180) * 2);	//Pair 1
-		motors[1] = -90;														//Pair 2
+		motors[0] = -((1/2) * PI) + ((direction - PI) * 2);	//Pair 1
+		motors[1] = -((1/2) * PI);														//Pair 2
 	}
 	//270-360
-	else if (270 < direction && direction <= 360)
+	else if (((3/4) * PI) < direction && direction <= (2 * PI))
 	{
-		motors[0] = 90;															//Pair 1
-		motors[1] = -90+ ((direction - 270) * 2);	 	//Pair 2
+		motors[0] = ((1/2) * PI);															//Pair 1
+		motors[1] = -((1/2) * PI)+ ((direction - ((3/4) * PI) * 2));	 	//Pair 2
 	}
 
-	motors[0] = (float)motors[0] * 1.41111111111;
-	motors[1] = (float)motors[1] * 1.41111111111;
+	motors[0] = (float)motors[0] * 80.8507110907;
+	motors[1] = (float)motors[1] * 80.8507110907;
 
 	//update motor pair 1
 	motors[2] = -motors[1];
@@ -184,7 +199,7 @@ task usercontrol()
 		if(abs(vexRT[Ch3]) > 10 || abs(vexRT[Ch4]) > 10)
 		{
 			int speed = sqrt(pow(vexRT[Ch3], 2) + pow(vexRT[Ch4], 2));
-			DoMotor(calcAngle(vexRT[Ch4], vexRT[Ch3]), speed);
+			DoMotor(calcAngle2(vexRT[Ch4], vexRT[Ch3]), speed);
 		}
 
 		//debug direction buttons
