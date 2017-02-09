@@ -1,3 +1,4 @@
+#pragma config(Sensor, dgtl1,  					buttonArm,     sensorTouch)
 #pragma config(Motor,  port1,           claw2,         tmotorVex393_HBridge, openLoop)
 #pragma config(Motor,  port2,           armL1,         tmotorVex393_MC29, openLoop, reversed)
 #pragma config(Motor,  port3,           armL2,         tmotorVex393_MC29, openLoop, reversed)
@@ -35,14 +36,82 @@ void pre_auton()
 	// Example: clearing encoders, setting servo positions, ...
 }
 
+void movestop()
+{
+	motor[wheelLF] = 0;
+	motor[wheelLB] = 0;
+	motor[wheelRF] = 0;
+	motor[wheelRB] = 0;
+}
+
+void move(int time)
+{
+	motor[wheelLF] = -127;
+	motor[wheelLB] = -100;
+	motor[wheelRF] = 100;
+	motor[wheelRB] = 73;
+	sleep(time);
+	movestop();
+}
+
 task autonomous()
 {
-	// ..........................................................................
-	// Insert user code here.
-	// ..........................................................................
+		//drive backwards
+		move(2500);
 
-	// Remove this function call once you have "real" code.
-	AutonomousCodePlaceholderForTesting();
+		//open claws
+		motor[claw1] = -127;
+		motor[claw2] = -127;
+		sleep(525);
+		motor[claw1] = 0;
+		motor[claw2] = 0;
+
+		int counter = 0;
+		//lift arm
+		while(SensorValue(buttonArm) == 0 && counter < 6)
+		{
+			motor[armL1] = 127;
+			motor[armL2] = 127;
+			motor[armR1] = 127;
+			motor[armR2] = 127;
+			sleep(250);
+			counter ++;
+		}
+		sleep(0);
+		motor[armL1] = 0;
+		motor[armL2] = 0;
+		motor[armR1] = 0;
+		motor[armR2] = 0;
+
+		//waggle claw
+		motor[claw1] = -127;
+		motor[claw2] = -127;
+		sleep(500);
+		motor[claw1] = 127;
+		motor[claw2] = 127;
+		sleep(500);
+		motor[claw1] = -127;
+		motor[claw2] = -127;
+		sleep(500);
+		motor[claw1] = 127;
+		motor[claw2] = 127;
+		sleep(500);
+		motor[claw1] = -127;
+		motor[claw2] = -127;
+		sleep(500);
+		motor[claw1] = 0;
+		motor[claw2] = 0;
+
+		//lower arm
+		motor[armL1] = -127;
+		motor[armL2] = -127;
+		motor[armR1] = -127;
+		motor[armR2] = -127;
+		sleep(1000);
+		motor[armL1] = 0;
+		motor[armL2] = 0;
+		motor[armR1] = 0;
+		motor[armR2] = 0;
 }
 
 task usercontrol()
@@ -53,7 +122,7 @@ task usercontrol()
 	{
 		// Stuff for the arms
 
-		if (vexRT[Btn8U])
+		if (vexRT[Btn5U])
 		{
 			motor[armL1] = 127;
 			motor[armL2] = 127;
@@ -61,7 +130,7 @@ task usercontrol()
 			motor[armR2] = 127;
 
 		}
-		else if (vexRT[Btn8D])
+		else if (vexRT[Btn5D])
 		{
 			motor[armL1] = -127;
 			motor[armL2] = -127;
@@ -104,6 +173,7 @@ task usercontrol()
 			motor[wheelRB] = vexRT[Ch1];
 		}
 
+		//claw
 		if(vexRT(Btn6D))
 		{
 			motor[claw1] = 127;
@@ -119,5 +189,6 @@ task usercontrol()
 			motor[claw1] = 0;
 			motor[claw2] = 0;
 		}
+
 	}
 }
