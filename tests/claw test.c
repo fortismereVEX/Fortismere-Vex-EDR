@@ -11,6 +11,11 @@ task main()
 			motor[motor1] = 127;
 			motor[motor2] = 127;
 		}
+		else if (vexRT[Btn8D])
+		{
+			motor[motor1] = -127;
+			motor[motor2] = -127;
+		}
 		else
 		{
 			motor[motor1] = 0;
