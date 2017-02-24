@@ -86,19 +86,19 @@ task autonomous()
 		//waggle claw
 		motor[claw1] = -127;
 		motor[claw2] = -127;
-		sleep(500);
+		sleep(1000);
 		motor[claw1] = 127;
 		motor[claw2] = 127;
-		sleep(500);
+		sleep(1000);
 		motor[claw1] = -127;
 		motor[claw2] = -127;
-		sleep(500);
+		sleep(1000);
 		motor[claw1] = 127;
 		motor[claw2] = 127;
-		sleep(500);
+		sleep(1000);
 		motor[claw1] = -127;
 		motor[claw2] = -127;
-		sleep(500);
+		sleep(1000);
 		motor[claw1] = 0;
 		motor[claw2] = 0;
 
