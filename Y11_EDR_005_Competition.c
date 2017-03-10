@@ -59,15 +59,13 @@ void pre_auton()
 /*---------------------------------------------------------------------------*/
 
 // autonomous helpers
-void moveForward(int time)
+void ZeroMotors()
 {
-	int power = 127;
+	int power = 0;
 	// Left
 	motor[DriveL1] = power;
 	motor[DriveL2] = power;
 	motor[DriveL3] = power;
-
-	sleep(time);
 
 	//Right
 	motor[DriveR1] = power;
@@ -75,39 +73,7 @@ void moveForward(int time)
 	motor[DriveR3] = power;
 }
 
-void moveBackwards(int time)
-{
-	int power = 127;
-	// Left
-	motor[DriveL1] = -power;
-	motor[DriveL2] = -power;
-	motor[DriveL3] = -power;
-
-	sleep(time);
-
-	//Right
-	motor[DriveR1] = -power;
-	motor[DriveR2] = -power;
-	motor[DriveR3] = -power;
-}
-
-void turnLeft(int time)
-{
-	int power = 127;
-	// Left
-	motor[DriveL1] = -power;
-	motor[DriveL2] = -power;
-	motor[DriveL3] = -power;
-
-	sleep(time);
-
-	//Right
-	motor[DriveR1] = power;
-	motor[DriveR2] = power;
-	motor[DriveR3] = power;
-}
-
-void turnRight(int time)
+void MoveForward(int time)
 {
 	int power = 127;
 	// Left
@@ -115,17 +81,79 @@ void turnRight(int time)
 	motor[DriveL2] = power;
 	motor[DriveL3] = power;
 
+	//Right
+	motor[DriveR1] = power;
+	motor[DriveR2] = power;
+	motor[DriveR3] = power;
+
 	sleep(time);
+
+	ZeroMotors();
+}
+
+void MoveBackwards(int time)
+{
+	int power = 127;
+	// Left
+	motor[DriveL1] = -power;
+	motor[DriveL2] = -power;
+	motor[DriveL3] = -power;
 
 	//Right
 	motor[DriveR1] = -power;
 	motor[DriveR2] = -power;
 	motor[DriveR3] = -power;
+
+	sleep(time);
+
+	ZeroMotors();
 }
+
+void TurnLeft(int time)
+{
+	int power = 127;
+	// Left
+	motor[DriveL1] = -power;
+	motor[DriveL2] = -power;
+	motor[DriveL3] = -power;
+
+	//Right
+	motor[DriveR1] = power;
+	motor[DriveR2] = power;
+	motor[DriveR3] = power;
+
+	sleep(time);
+
+	ZeroMotors();
+}
+
+void TurnRight(int time)
+{
+	int power = 127;
+	// Left
+	motor[DriveL1] = power;
+	motor[DriveL2] = power;
+	motor[DriveL3] = power;
+
+	//Right
+	motor[DriveR1] = -power;
+	motor[DriveR2] = -power;
+	motor[DriveR3] = -power;
+
+	sleep(time);
+
+	ZeroMotors();
+}
+
+// for movement
+// 500 is 30 inches (including drifting)
+
+// for turning
+// 100 is 90/4
 
 task autonomous()
 {
-
+	TurnRight(250);
 }
 
 /*---------------------------------------------------------------------------*/
