@@ -1,4 +1,4 @@
-#pragma config(Sensor, dgtl1,  ArmEncoder,    sensorQuadEncoder)
+#pragma config(Sensor, dgtl1,  ArmEncoder,     sensorQuadEncoder)
 #pragma config(Motor,  port1,           ClawL,         tmotorVex393_HBridge, openLoop)
 #pragma config(Motor,  port2,           LiftLD,        tmotorVex393HighSpeed_MC29, openLoop)
 #pragma config(Motor,  port3,           LiftRD,        tmotorVex393HighSpeed_MC29, openLoop, reversed)
@@ -58,6 +58,71 @@ void pre_auton()
 /*  You must modify the code to add your own robot specific commands here.   */
 /*---------------------------------------------------------------------------*/
 
+// autonomous helpers
+void moveForward(int time)
+{
+	int power = 127;
+	// Left
+	motor[DriveL1] = power;
+	motor[DriveL2] = power;
+	motor[DriveL3] = power;
+
+	sleep(time);
+
+	//Right
+	motor[DriveR1] = power;
+	motor[DriveR2] = power;
+	motor[DriveR3] = power;
+}
+
+void moveBackwards(int time)
+{
+	int power = 127;
+	// Left
+	motor[DriveL1] = -power;
+	motor[DriveL2] = -power;
+	motor[DriveL3] = -power;
+
+	sleep(time);
+
+	//Right
+	motor[DriveR1] = -power;
+	motor[DriveR2] = -power;
+	motor[DriveR3] = -power;
+}
+
+void turnLeft(int time)
+{
+	int power = 127;
+	// Left
+	motor[DriveL1] = -power;
+	motor[DriveL2] = -power;
+	motor[DriveL3] = -power;
+
+	sleep(time);
+
+	//Right
+	motor[DriveR1] = power;
+	motor[DriveR2] = power;
+	motor[DriveR3] = power;
+}
+
+void turnRight(int time)
+{
+	int power = 127;
+	// Left
+	motor[DriveL1] = power;
+	motor[DriveL2] = power;
+	motor[DriveL3] = power;
+
+	sleep(time);
+
+	//Right
+	motor[DriveR1] = -power;
+	motor[DriveR2] = -power;
+	motor[DriveR3] = -power;
+}
+
 task autonomous()
 {
 
@@ -73,12 +138,16 @@ task autonomous()
 /*  You must modify the code to add your own robot specific commands here.   */
 /*---------------------------------------------------------------------------*/
 
+char lcdDisplay[10];
+
 task usercontrol()
 {
   // User control code here, inside the loop
   bool closeSwitch = false;
 	int toggle = 1;
 	int clawTick = 0;
+
+	int encoderAcc = 0;
 
   wait1Msec(2000);  // 2 Second Delay
 
@@ -88,8 +157,10 @@ task usercontrol()
   while (true)
   {
 
-    int value = SensorValue[ArmEncoder];
-    displayLCDNumber(0, 0, value);
+  	//sprintf(lcdDisplay, "%f", SensorValue[ArmEncoder]);
+    encoderAcc += SensorValue[ArmEncoder];
+    displayLCDNumber(0, 0, encoderAcc);
+    SensorValue[ArmEncoder] = 0;
 
     int l = (vexRT[Ch3] + vexRT[Ch1]);
 		int r = (vexRT[Ch3] - vexRT[Ch1]);
