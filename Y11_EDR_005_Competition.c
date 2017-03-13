@@ -159,14 +159,17 @@ enum
 
 task autonomous()
 {
+
+	int buttonsPressed = 0;
+
+	int time;
+
+	int mode;
+
 	while(true)
 	{
 
-		int buttonsPressed = 0;
 
-		int time;
-
-		int mode;
 
 		do
 		{
