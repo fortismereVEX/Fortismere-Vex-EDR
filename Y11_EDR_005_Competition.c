@@ -144,12 +144,77 @@ void TurnRight(int time)
 
 	ZeroMotors();
 }
+void autonomous1(string AlignMent){
+	motor[ClawL] = 127;
+	motor[ClawR] = 127;
+	sleep(600);
+	motor[ClawL] = 0;
+	motor[ClawR] = 0;
+	sleep(50);
+	motor[ClawL] = -127;
+	motor[ClawR] = -127;
+	sleep(154)
+	motor[ClawL] = 0;
+	motor[ClawR] = 0;
+	motor[LiftLD] = -127;
+	motor[LiftRD] = -127;
+	sleep(200);
+	motor[LiftRD] = 0;
+	motor[LiftRD] = 0;
+	int time = 850;
+	MoveForward(time);
+	motor[ClawL] = 127;
+	motor[ClawR] = 127;
+	sleep(600);
 
+	//turning
+	motor[DriveL1] = -127
+	motor[DriveL2] = -127
+	motor[DriveL3] = -127
+	motor[DriveR1] = 127
+	motor[DriveR2] = 127
+	motor[DriveR3] = 127
+
+	motor[LiftLD] = 127
+	motor[LiftRD] = 127
+	sleep(500)
+
+
+	motor[DriveL1] = -127
+	motor[DriveL2] = -127
+	motor[DriveL3] = -127
+	motor[DriveR1] = -127
+	motor[DriveR2] = -127
+	motor[DriveR3] = -127
+
+	motor[LiftLD] = 127
+	motor[LiftRD] = 127
+
+
+	sleep(1000)
+	motor[DriveL1] = 0
+	motor[DriveL2] = 0
+	motor[DriveL3] = 0
+	motor[DriveR1] = 0
+	motor[DriveR2] = 0
+	motor[DriveR3] = 0
+
+	motor[LiftLD] = 0
+	motor[LiftRD] = 0
+
+	motor[ClawL] = -127
+	motor[ClawR] = -127
+	sleep(50)
+	motor[ClawL] = 0
+	motor[ClawR] = 0
+
+	}
 // for movement
-// 500 is 30 inches (including drifting)
+// 500 is 30 inches (including drifting) 1 square
 
 // for turning
 // 100 is 90/4
+// 250 is 90
 
 enum
 {
@@ -159,7 +224,8 @@ enum
 
 task autonomous()
 {
-
+	string alignment = "Right"
+	autonomous1(alignment)
 	int buttonsPressed = 0;
 
 	int time;
@@ -199,26 +265,28 @@ task autonomous()
 			if(mode == AUTONOMOUS_TURN)
 			{
 				clearLCDLine(0);
+				clearLCDLine(1);
 				displayLCDString(0, 0, "TURN");
 				displayLCDNumber(1, 0, time);
 			}
 			else if(mode == AUTONOMOUS_FORWARD)
 			{
 				clearLCDLine(0);
+				clearLCDLine(1);
 				displayLCDString(0, 0, "FORWARD");
 				displayLCDNumber(1, 0, time);
 			}
 
 		}
-		while(buttonsPressed != 5);
+		while(buttonsPressed != 2);
 
 		if(mode == AUTONOMOUS_TURN)
 		{
-			MoveForward(time);
+			TurnRight(time);
 		}
 		else if(mode == AUTONOMOUS_FORWARD)
 		{
-			TurnRight(time);
+			MoveForward(time);
 		}
 	}
 
