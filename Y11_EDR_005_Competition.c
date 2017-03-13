@@ -175,9 +175,7 @@ task usercontrol()
 	int toggle = 1;
 	int clawTick = 0;
 
-	int encoderAcc = 0;
-
-  wait1Msec(2000);  // 2 Second Delay
+	//int encoderAcc = 0;
 
   //Clear Encoders
   SensorValue[ArmEncoder] = 0;
@@ -186,9 +184,9 @@ task usercontrol()
   {
 
   	//sprintf(lcdDisplay, "%f", SensorValue[ArmEncoder]);
-    encoderAcc += SensorValue[ArmEncoder];
-    displayLCDNumber(0, 0, encoderAcc);
-    SensorValue[ArmEncoder] = 0;
+    //encoderAcc += SensorValue[ArmEncoder];
+    displayLCDNumber(0, 0, SensorValue[ArmEncoder]);
+    //SensorValue[ArmEncoder] = 0;
 
     int l = (vexRT[Ch3] + vexRT[Ch1]);
 		int r = (vexRT[Ch3] - vexRT[Ch1]);
