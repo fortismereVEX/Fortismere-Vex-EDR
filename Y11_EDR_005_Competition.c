@@ -151,9 +151,74 @@ void TurnRight(int time)
 // for turning
 // 100 is 90/4
 
+enum
+{
+	AUTONOMOUS_TURN = 0,
+	AUTONOMOUS_FORWARD,
+};
+
 task autonomous()
 {
-	TurnRight(250);
+	while(true)
+	{
+
+		int buttonsPressed = 0;
+
+		int time;
+
+		int mode;
+
+		do
+		{
+			sleep(100);
+			buttonsPressed = nLCDButtons;
+
+			if(buttonsPressed == 3)
+			{
+				mode = AUTONOMOUS_TURN;
+
+			}
+			else if(buttonsPressed == 6)
+			{
+				mode = AUTONOMOUS_FORWARD;
+			}
+			else if(buttonsPressed == 1)
+			{
+				time -= 10;
+			}
+			else if(buttonsPressed == 4)
+			{
+				time += 10;
+			}
+
+
+
+			if(mode == AUTONOMOUS_TURN)
+			{
+				clearLCDLine(0);
+				displayLCDString(0, 0, "TURN");
+				displayLCDNumber(1, 0, time);
+			}
+			else if(mode == AUTONOMOUS_FORWARD)
+			{
+				clearLCDLine(0);
+				displayLCDString(0, 0, "FORWARD");
+				displayLCDNumber(1, 0, time);
+			}
+
+		}
+		while(buttonsPressed != 5);
+
+		if(mode == AUTONOMOUS_TURN)
+		{
+			MoveForward(time);
+		}
+		else if(mode == AUTONOMOUS_FORWARD)
+		{
+			TurnRight(time);
+		}
+	}
+
 }
 
 /*---------------------------------------------------------------------------*/
