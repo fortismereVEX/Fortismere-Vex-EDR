@@ -23,41 +23,6 @@
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
-/*---------------------------------------------------------------------------*/
-/*                          Pre-Autonomous Functions                         */
-/*                                                                           */
-/*  You may want to perform some actions before the competition starts.      */
-/*  Do them in the following function.  You must return from this function   */
-/*  or the autonomous and usercontrol tasks will not be started.  This       */
-/*  function is only called once after the cortex has been powered on and    */
-/*  not every time that the robot is disabled.                               */
-/*---------------------------------------------------------------------------*/
-
-void pre_auton()
-{
-  // Set bStopTasksBetweenModes to false if you want to keep user created tasks
-  // running between Autonomous and Driver controlled modes. You will need to
-  // manage all user created tasks if set to false.
-  bStopTasksBetweenModes = false;
-
-	// Set bDisplayCompetitionStatusOnLcd to false if you don't want the LCD
-	// used by the competition include file, for example, you might want
-	// to display your team name on the LCD in this function.
-	// bDisplayCompetitionStatusOnLcd = false;
-
-  bLCDBacklight = true;
-}
-
-/*---------------------------------------------------------------------------*/
-/*                                                                           */
-/*                              Autonomous Task                              */
-/*                                                                           */
-/*  This task is used to control your robot during the autonomous phase of   */
-/*  a VEX Competition.                                                       */
-/*                                                                           */
-/*  You must modify the code to add your own robot specific commands here.   */
-/*---------------------------------------------------------------------------*/
-
 // autonomous helpers
 void ZeroMotors()
 {
@@ -144,7 +109,21 @@ void TurnRight(int time)
 
 	ZeroMotors();
 }
-void autonomous1(string AlignMent){
+
+void ClawOpen(int time)
+{
+	int power = 127;
+
+	motor[ClawL] = power;
+	motor[ClawR] = power;
+
+	sleep(time);
+
+	ZeroMotors();
+}
+
+void AutonomousCubeRight()
+{
 	motor[ClawL] = 127;
 	motor[ClawR] = 127;
 	sleep(600);
@@ -168,47 +147,47 @@ void autonomous1(string AlignMent){
 	sleep(600);
 
 	//turning
-	motor[DriveL1] = -127
-	motor[DriveL2] = -127
-	motor[DriveL3] = -127
-	motor[DriveR1] = 127
-	motor[DriveR2] = 127
-	motor[DriveR3] = 127
+	motor[DriveL1] = -127;
+	motor[DriveL2] = -127;
+	motor[DriveL3] = -127;
+	motor[DriveR1] = 127;
+	motor[DriveR2] = 127;
+	motor[DriveR3] = 127;
 
-	motor[LiftLD] = 127
-	motor[LiftRD] = 127
-	sleep(500)
-
-
-	motor[DriveL1] = -127
-	motor[DriveL2] = -127
-	motor[DriveL3] = -127
-	motor[DriveR1] = -127
-	motor[DriveR2] = -127
-	motor[DriveR3] = -127
-
-	motor[LiftLD] = 127
-	motor[LiftRD] = 127
+	motor[LiftLD] = 127;
+	motor[LiftRD] = 127;
+	sleep(500);
 
 
-	sleep(1000)
-	motor[DriveL1] = 0
-	motor[DriveL2] = 0
-	motor[DriveL3] = 0
-	motor[DriveR1] = 0
-	motor[DriveR2] = 0
-	motor[DriveR3] = 0
+	motor[DriveL1] = -127;
+	motor[DriveL2] = -127;
+	motor[DriveL3] = -127;
+	motor[DriveR1] = -127;
+	motor[DriveR2] = -127;
+	motor[DriveR3] = -127;
 
-	motor[LiftLD] = 0
-	motor[LiftRD] = 0
+	motor[LiftLD] = 127;
+	motor[LiftRD] = 127;
 
-	motor[ClawL] = -127
-	motor[ClawR] = -127
-	sleep(50)
-	motor[ClawL] = 0
-	motor[ClawR] = 0
 
-	}
+	sleep(1000);
+	motor[DriveL1] = 0;
+	motor[DriveL2] = 0;
+	motor[DriveL3] = 0;
+	motor[DriveR1] = 0;
+	motor[DriveR2] = 0;
+	motor[DriveR3] = 0;
+
+	motor[LiftLD] = 0;
+	motor[LiftRD] = 0;
+
+	motor[ClawL] = -127;
+	motor[ClawR] = -127;
+	sleep(50);
+	motor[ClawL] = 0;
+	motor[ClawR] = 0;
+
+}
 // for movement
 // 500 is 30 inches (including drifting) 1 square
 
@@ -222,21 +201,28 @@ typedef enum k_autonomous_debug
 	AUTONOMOUS_FORWARD,
 } autonomous_debug_t;
 
-typedef enum k_autonomous_mode
-{
-	AUTONOMOUS_GENERIC,
-	AUTONOMOUS_CUBE_LEFT,
-	AUTONOMOUS_CUBE_RIGHT,
-} autonomous_mode_t;
-
 #define AUTONOMOUS_DEBUG
 
 #ifdef AUTONOMOUS_DEBUG
 
+void pre_auton()
+{
+  // Set bStopTasksBetweenModes to false if you want to keep user created tasks
+  // running between Autonomous and Driver controlled modes. You will need to
+  // manage all user created tasks if set to false.
+  bStopTasksBetweenModes = false;
+
+	// Set bDisplayCompetitionStatusOnLcd to false if you don't want the LCD
+	// used by the competition include file, for example, you might want
+	// to display your team name on the LCD in this function.
+	// bDisplayCompetitionStatusOnLcd = false;
+
+  bLCDBacklight = true;
+}
+
+// debug autonomous
 task autonomous()
 {
-	string alignment = "Right"
-	autonomous1(alignment)
 	int buttonsPressed = 0;
 
 	int time;
@@ -303,7 +289,115 @@ task autonomous()
 
 #else
 
+// TODO: Fix this - cube left mode and fix the menu system to use correct types
 
+typedef enum k_autonomous_mode
+{
+	AUTONOMOUS_GENERIC,
+	AUTONOMOUS_CUBE_LEFT,
+	AUTONOMOUS_CUBE_RIGHT,
+} autonomous_mode_t;
+
+const char *autonomous_mode_strings =
+{
+	"generic",
+	"cube right",
+	"cube left",
+};
+
+// global for the autonomous mode selected
+autonomous_mode_t g_autonomous_mode;
+
+void pre_auton()
+{
+  // Set bStopTasksBetweenModes to false if you want to keep user created tasks
+  // running between Autonomous and Driver controlled modes. You will need to
+  // manage all user created tasks if set to false.
+  bStopTasksBetweenModes = false;
+
+	// Set bDisplayCompetitionStatusOnLcd to false if you don't want the LCD
+	// used by the competition include file, for example, you might want
+	// to display your team name on the LCD in this function.
+	// bDisplayCompetitionStatusOnLcd = false;
+
+  bLCDBacklight = true;
+
+  int buttonsPressed = 0;
+
+	int time;
+
+	while(true)
+	{
+		do
+		{
+			sleep(100);
+			buttonsPressed = nLCDButtons;
+
+			if(buttonsPressed == 3)
+			{
+				g_autonomous_mode = AUTONOMOUS_TURN;
+
+			}
+			else if(buttonsPressed == 6)
+			{
+				mg_autonomous_mode = AUTONOMOUS_FORWARD;
+			}
+			else if(buttonsPressed == 1)
+			{
+				time -= 10;
+			}
+			else if(buttonsPressed == 4)
+			{
+				time += 10;
+			}
+
+			if(mode == AUTONOMOUS_TURN)
+			{
+				clearLCDLine(0);
+				clearLCDLine(1);
+				displayLCDString(0, 0, "TURN");
+				displayLCDNumber(1, 0, time);
+			}
+			else if(mode == AUTONOMOUS_FORWARD)
+			{
+				clearLCDLine(0);
+				clearLCDLine(1);
+				displayLCDString(0, 0, "FORWARD");
+				displayLCDNumber(1, 0, time);
+			}
+
+		}
+		while(buttonsPressed != 2);
+
+		if(mode == AUTONOMOUS_TURN)
+		{
+			TurnRight(time);
+		}
+		else if(mode == AUTONOMOUS_FORWARD)
+		{
+			MoveForward(time);
+		}
+	}
+}
+
+task autonomous()
+{
+	if(g_autonomous_mode == AUTONOMOUS_GENERIC)
+	{
+		AutonomousGeneric();
+	}
+	else if(g_autonomous_mode == AUTONOMOUS_CUBE_LEFT)
+	{
+		AutonomousCubeLeft();
+	}
+	else if(g_autonomous_mode == AUTONOMOUS_CUBE_RIGHT)
+	{
+		AutonomousCubeRight();
+	}
+
+}
+
+#endif
 
 /*---------------------------------------------------------------------------*/
 /*                                                                           */
