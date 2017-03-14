@@ -218,8 +218,8 @@ void ClawClose()
 {
 	int power = 127;
 
-	motor[ClawL] = power;
-	motor[ClawR] = power;
+	motor[ClawL] = -power;
+	motor[ClawR] = -power;
 }
 
 void ArmUp(int time)
