@@ -226,8 +226,8 @@ void ArmUp(int time)
 {
 	int power = 127;
 
-	motor[ClawL] = power;
-	motor[ClawR] = power;
+	motor[LiftLD] = power;
+	motor[LiftRD] = power;
 
 	sleep(time);
 	ZeroArm();
@@ -237,16 +237,16 @@ void ArmUp()
 {
 	int power = 127;
 
-	motor[ClawL] = power;
-	motor[ClawR] = power;
+	motor[LiftLD] = power;
+	motor[LiftRD] = power;
 }
 
 void ArmDown(int time)
 {
 	int power = 127;
 
-	motor[ClawL] = -power;
-	motor[ClawR] = -power;
+	motor[LiftLD] = -power;
+	motor[LiftRD] = -power;
 
 	sleep(time);
 	ZeroArm();
@@ -256,8 +256,8 @@ void ArmDown()
 {
 	int power = 127;
 
-	motor[ClawL] = -power;
-	motor[ClawR] = -power;
+	motor[LiftLD] = -power;
+	motor[LiftRD] = -power;
 }
 
 void AutonomousCubeRight()
@@ -360,7 +360,7 @@ void AutonomousCubeLeft()
 	ClawOpen();
 	sleep(600);
 
-	TurnLeft();
+	TurnRight();
 
 	ArmUp();
 	sleep(500);
@@ -418,7 +418,14 @@ string autonomous_debug_strings[] =
 	"ARM_DOWN",
 };
 
-//#define AUTONOMOUS_DEBUG
+
+// =====================================================
+// AUTONOMOUS DEBUG CONTROL
+// =====================================================
+
+// comment this out in order to enable competition autonomous mode
+// if this is uncommented it will run the debug autonomous
+#define AUTONOMOUS_DEBUG
 
 #ifdef AUTONOMOUS_DEBUG
 
