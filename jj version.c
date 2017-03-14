@@ -144,77 +144,12 @@ void TurnRight(int time)
 
 	ZeroMotors();
 }
-void autonomous1(string AlignMent){
-	motor[ClawL] = 127;
-	motor[ClawR] = 127;
-	sleep(600);
-	motor[ClawL] = 0;
-	motor[ClawR] = 0;
-	sleep(50);
-	motor[ClawL] = -127;
-	motor[ClawR] = -127;
-	sleep(154)
-	motor[ClawL] = 0;
-	motor[ClawR] = 0;
-	motor[LiftLD] = -127;
-	motor[LiftRD] = -127;
-	sleep(200);
-	motor[LiftRD] = 0;
-	motor[LiftRD] = 0;
-	int time = 850;
-	MoveForward(time);
-	motor[ClawL] = 127;
-	motor[ClawR] = 127;
-	sleep(600);
 
-	//turning
-	motor[DriveL1] = -127
-	motor[DriveL2] = -127
-	motor[DriveL3] = -127
-	motor[DriveR1] = 127
-	motor[DriveR2] = 127
-	motor[DriveR3] = 127
-
-	motor[LiftLD] = 127
-	motor[LiftRD] = 127
-	sleep(500)
-
-
-	motor[DriveL1] = -127
-	motor[DriveL2] = -127
-	motor[DriveL3] = -127
-	motor[DriveR1] = -127
-	motor[DriveR2] = -127
-	motor[DriveR3] = -127
-
-	motor[LiftLD] = 127
-	motor[LiftRD] = 127
-
-
-	sleep(1000)
-	motor[DriveL1] = 0
-	motor[DriveL2] = 0
-	motor[DriveL3] = 0
-	motor[DriveR1] = 0
-	motor[DriveR2] = 0
-	motor[DriveR3] = 0
-
-	motor[LiftLD] = 0
-	motor[LiftRD] = 0
-
-	motor[ClawL] = -127
-	motor[ClawR] = -127
-	sleep(50)
-	motor[ClawL] = 0
-	motor[ClawR] = 0
-
-	}
 // for movement
-// 500 is 30 inches (including drifting) 1 square
+// 500 is 30 inches (including drifting)
 
 // for turning
 // 100 is 90/4
-// 250 is 90
 
 typedef enum k_autonomous_debug
 {
@@ -222,21 +157,9 @@ typedef enum k_autonomous_debug
 	AUTONOMOUS_FORWARD,
 } autonomous_debug_t;
 
-typedef enum k_autonomous_mode
-{
-	AUTONOMOUS_GENERIC,
-	AUTONOMOUS_CUBE_LEFT,
-	AUTONOMOUS_CUBE_RIGHT,
-} autonomous_mode_t;
-
-#define AUTONOMOUS_DEBUG
-
-#ifdef AUTONOMOUS_DEBUG
-
 task autonomous()
 {
-	string alignment = "Right"
-	autonomous1(alignment)
+
 	int buttonsPressed = 0;
 
 	int time;
@@ -245,65 +168,57 @@ task autonomous()
 
 	while(true)
 	{
-
 		do
 		{
+			// so values dont change too quickly
 			sleep(100);
 			buttonsPressed = nLCDButtons;
 
-			if(buttonsPressed == 3)
+			// check buttons
+			if(buttonsPressed == 3) // button left center
 			{
 				mode = AUTONOMOUS_TURN;
-
 			}
-			else if(buttonsPressed == 6)
+			else if(buttonsPressed == 6) // button right center
 			{
 				mode = AUTONOMOUS_FORWARD;
 			}
-			else if(buttonsPressed == 1)
+			else if(buttonsPressed == 1) // button left
 			{
 				time -= 10;
 			}
-			else if(buttonsPressed == 4)
+			else if(buttonsPressed == 4) // button right
 			{
 				time += 10;
 			}
 
-
-
 			if(mode == AUTONOMOUS_TURN)
 			{
 				clearLCDLine(0);
-				clearLCDLine(1);
 				displayLCDString(0, 0, "TURN");
 				displayLCDNumber(1, 0, time);
 			}
 			else if(mode == AUTONOMOUS_FORWARD)
 			{
 				clearLCDLine(0);
-				clearLCDLine(1);
 				displayLCDString(0, 0, "FORWARD");
 				displayLCDNumber(1, 0, time);
 			}
 
 		}
-		while(buttonsPressed != 2);
+		while(buttonsPressed != 5);
 
 		if(mode == AUTONOMOUS_TURN)
 		{
-			TurnRight(time);
+			MoveForward(time);
 		}
 		else if(mode == AUTONOMOUS_FORWARD)
 		{
-			MoveForward(time);
+			TurnRight(time);
 		}
 	}
 
 }
-
-#else
-
-
 
 /*---------------------------------------------------------------------------*/
 /*                                                                           */
@@ -329,10 +244,19 @@ task usercontrol()
   //Clear Encoders
   SensorValue[ArmEncoder] = 0;
 
-  string mainBattery, backupBattery;
+  //FOR DISPLAY BATTERY
+  bLCDBacklight = true;                  // Turn on LCD Backlight
+	string mainBattery, backupBattery;
 
   while (true)
   {
+
+  	//sprintf(lcdDisplay, "%f", SensorValue[ArmEncoder]);
+    //encoderAcc += SensorValue[ArmEncoder];
+    //displayLCDNumber(0, 0, SensorValue[ArmEncoder]);         THIS WAS UNCOMMENTED
+    //SensorValue[ArmEncoder] = 0;
+
+  	// JJ CODE FOR BATTERY
   	if (vexRT[Btn7L])
   	{
   		// clear the lcd display
@@ -354,11 +278,6 @@ task usercontrol()
 			// resulting in us being unable to use the robot for this time period
 			wait1Msec(100);
 		}
-
-  	//sprintf(lcdDisplay, "%f", SensorValue[ArmEncoder]);
-    //encoderAcc += SensorValue[ArmEncoder];
-    displayLCDNumber(0, 0, SensorValue[ArmEncoder]);
-    //SensorValue[ArmEncoder] = 0;
 
     int l = (vexRT[Ch3] + vexRT[Ch1]);
 		int r = (vexRT[Ch3] - vexRT[Ch1]);
