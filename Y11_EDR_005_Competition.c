@@ -410,15 +410,15 @@ typedef enum k_autonomous_debug
 
 string autonomous_debug_strings[] =
 {
-	"AUTONOMOUS_TURN_RIGHT",
-	"AUTONOMOUS_TURN_LEFT",
-	"AUTONOMOUS_FORWARD",
-	"AUTONOMOUS_BACKWARD",
-	"AUTONOMOUS_ARM_UP",
-	"AUTONOMOUS_ARM_DOWN",
+	"TURN_RIGHT",
+	"TURN_LEFT",
+	"FORWARD",
+	"BACKWARD",
+	"ARM_UP",
+	"ARM_DOWN",
 };
 
-#define AUTONOMOUS_DEBUG
+//#define AUTONOMOUS_DEBUG
 
 #ifdef AUTONOMOUS_DEBUG
 
@@ -512,7 +512,7 @@ task autonomous()
 
 typedef enum k_autonomous_mode
 {
-	AUTONOMOUS_GENERIC,
+	AUTONOMOUS_GENERIC = 0,
 	AUTONOMOUS_CUBE_LEFT,
 	AUTONOMOUS_CUBE_RIGHT,
 } autonomous_mode_t;
@@ -539,12 +539,12 @@ void pre_auton()
 	// Set bDisplayCompetitionStatusOnLcd to false if you don't want the LCD
 	// used by the competition include file, for example, you might want
 	// to display your team name on the LCD in this function.
-	// bDisplayCompetitionStatusOnLcd = false;
+	bDisplayCompetitionStatusOnLcd = false;
 
   bLCDBacklight = true;
 
   int buttonsPressed = 0;
- 	int lastButtons = 0;
+ 	int lastButtons = -1;
 
  	bool buttonsEqual = 0;
 
@@ -552,13 +552,12 @@ void pre_auton()
 
 	while(true)
 	{
-		sleep(100);
+		sleep(1000);
 		buttonsPressed = nLCDButtons;
 
 		if(buttonsPressed == 2)
 		{
 			g_autonomous_mode = AUTONOMOUS_GENERIC;
-
 		}
 		else if(buttonsPressed == 1)
 		{
