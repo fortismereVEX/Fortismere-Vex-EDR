@@ -24,7 +24,7 @@
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
 // autonomous helpers
-void ZeroMotors()
+void ZeroDrive()
 {
 	int power = 0;
 	// Left
@@ -36,6 +36,22 @@ void ZeroMotors()
 	motor[DriveR1] = power;
 	motor[DriveR2] = power;
 	motor[DriveR3] = power;
+}
+
+void ZeroClaw()
+{
+	int power = 0;
+
+	motor[ClawL] = power;
+	motor[ClawR] = power;
+}
+
+void ZeroArm()
+{
+	int power = 0;
+
+	motor[LiftLD] = power;
+	motor[LiftRD] = power;
 }
 
 void MoveForward(int time)
@@ -53,7 +69,21 @@ void MoveForward(int time)
 
 	sleep(time);
 
-	ZeroMotors();
+	ZeroDrive();
+}
+
+void MoveForward()
+{
+	int power = 127;
+	// Left
+	motor[DriveL1] = power;
+	motor[DriveL2] = power;
+	motor[DriveL3] = power;
+
+	//Right
+	motor[DriveR1] = power;
+	motor[DriveR2] = power;
+	motor[DriveR3] = power;
 }
 
 void MoveBackwards(int time)
@@ -71,7 +101,21 @@ void MoveBackwards(int time)
 
 	sleep(time);
 
-	ZeroMotors();
+	ZeroDrive();
+}
+
+void MoveBackwards()
+{
+	int power = 127;
+	// Left
+	motor[DriveL1] = -power;
+	motor[DriveL2] = -power;
+	motor[DriveL3] = -power;
+
+	//Right
+	motor[DriveR1] = -power;
+	motor[DriveR2] = -power;
+	motor[DriveR3] = -power;
 }
 
 void TurnLeft(int time)
@@ -89,7 +133,21 @@ void TurnLeft(int time)
 
 	sleep(time);
 
-	ZeroMotors();
+	ZeroDrive();
+}
+
+void TurnLeft()
+{
+	int power = 127;
+	// Left
+	motor[DriveL1] = -power;
+	motor[DriveL2] = -power;
+	motor[DriveL3] = -power;
+
+	//Right
+	motor[DriveR1] = power;
+	motor[DriveR2] = power;
+	motor[DriveR3] = power;
 }
 
 void TurnRight(int time)
@@ -107,7 +165,21 @@ void TurnRight(int time)
 
 	sleep(time);
 
-	ZeroMotors();
+	ZeroDrive();
+}
+
+void TurnRight()
+{
+	int power = 127;
+	// Left
+	motor[DriveL1] = power;
+	motor[DriveL2] = power;
+	motor[DriveL3] = power;
+
+	//Right
+	motor[DriveR1] = -power;
+	motor[DriveR2] = -power;
+	motor[DriveR3] = -power;
 }
 
 void ClawOpen(int time)
@@ -119,75 +191,205 @@ void ClawOpen(int time)
 
 	sleep(time);
 
-	ZeroMotors();
+	ZeroClaw();
+}
+
+void ClawOpen()
+{
+	int power = 127;
+
+	motor[ClawL] = power;
+	motor[ClawR] = power;
+}
+
+void ClawClose(int time)
+{
+	int power = 127;
+
+	motor[ClawL] = -power;
+	motor[ClawR] = -power;
+
+	sleep(time);
+
+	ZeroClaw();
+}
+
+void ClawClose()
+{
+	int power = 127;
+
+	motor[ClawL] = power;
+	motor[ClawR] = power;
+}
+
+void ArmUp(int time)
+{
+	int power = 127;
+
+	motor[ClawL] = power;
+	motor[ClawR] = power;
+
+	sleep(time);
+	ZeroArm();
+}
+
+void ArmUp()
+{
+	int power = 127;
+
+	motor[ClawL] = power;
+	motor[ClawR] = power;
+}
+
+void ArmDown(int time)
+{
+	int power = 127;
+
+	motor[ClawL] = -power;
+	motor[ClawR] = -power;
+
+	sleep(time);
+	ZeroArm();
+}
+
+void ArmDown()
+{
+	int power = 127;
+
+	motor[ClawL] = -power;
+	motor[ClawR] = -power;
 }
 
 void AutonomousCubeRight()
 {
-	motor[ClawL] = 127;
-	motor[ClawR] = 127;
+	//motor[ClawL] = 127;
+	//motor[ClawR] = 127;
+  ClawOpen();
 	sleep(600);
-	motor[ClawL] = 0;
-	motor[ClawR] = 0;
+	//motor[ClawL] = 0;
+	//motor[ClawR] = 0;
+	ZeroClaw();
 	sleep(50);
-	motor[ClawL] = -127;
-	motor[ClawR] = -127;
-	sleep(154)
-	motor[ClawL] = 0;
-	motor[ClawR] = 0;
-	motor[LiftLD] = -127;
-	motor[LiftRD] = -127;
+	//motor[ClawL] = -127;
+	//motor[ClawR] = -127;
+	ClawClose();
+	sleep(154);
+	//motor[ClawL] = 0;
+	//motor[ClawR] = 0;
+	ZeroClaw();
+	//motor[LiftLD] = -127;
+	//motor[LiftRD] = -127;
+	ArmDown();
 	sleep(200);
-	motor[LiftRD] = 0;
-	motor[LiftRD] = 0;
-	int time = 850;
-	MoveForward(time);
-	motor[ClawL] = 127;
-	motor[ClawR] = 127;
+	//motor[LiftRD] = 0;
+	//motor[LiftRD] = 0;
+	ZeroArm();
+	MoveForward(850);
+	//motor[ClawL] = 127;
+	//motor[ClawR] = 127;
+	ClawOpen();
 	sleep(600);
 
 	//turning
-	motor[DriveL1] = -127;
-	motor[DriveL2] = -127;
-	motor[DriveL3] = -127;
-	motor[DriveR1] = 127;
-	motor[DriveR2] = 127;
-	motor[DriveR3] = 127;
+	//motor[DriveL1] = -127;
+	//motor[DriveL2] = -127;
+	//motor[DriveL3] = -127;
+	//motor[DriveR1] = 127;
+	//motor[DriveR2] = 127;
+	//motor[DriveR3] = 127;
+	TurnLeft();
 
-	motor[LiftLD] = 127;
-	motor[LiftRD] = 127;
+	//motor[LiftLD] = 127;
+	//motor[LiftRD] = 127;
+	ArmUp();
 	sleep(500);
 
 
-	motor[DriveL1] = -127;
-	motor[DriveL2] = -127;
-	motor[DriveL3] = -127;
-	motor[DriveR1] = -127;
-	motor[DriveR2] = -127;
-	motor[DriveR3] = -127;
+	//motor[DriveL1] = -127;
+	//motor[DriveL2] = -127;
+	//motor[DriveL3] = -127;
+	//motor[DriveR1] = -127;
+	//motor[DriveR2] = -127;
+	//motor[DriveR3] = -127;
+	MoveBackwards();
 
-	motor[LiftLD] = 127;
-	motor[LiftRD] = 127;
+	//motor[LiftLD] = 127;
+	//motor[LiftRD] = 127;
+	ArmUp();
 
 
 	sleep(1000);
-	motor[DriveL1] = 0;
-	motor[DriveL2] = 0;
-	motor[DriveL3] = 0;
-	motor[DriveR1] = 0;
-	motor[DriveR2] = 0;
-	motor[DriveR3] = 0;
+	//motor[DriveL1] = 0;
+	//motor[DriveL2] = 0;
+	//motor[DriveL3] = 0;
+	//motor[DriveR1] = 0;
+	//motor[DriveR2] = 0;
+	//motor[DriveR3] = 0;
+	ZeroDrive();
 
-	motor[LiftLD] = 0;
-	motor[LiftRD] = 0;
+	//motor[LiftLD] = 0;
+	//motor[LiftRD] = 0;
+	ZeroArm();
 
-	motor[ClawL] = -127;
-	motor[ClawR] = -127;
+	//motor[ClawL] = -127;
+	//motor[ClawR] = -127;
+	ClawClose();
 	sleep(50);
-	motor[ClawL] = 0;
-	motor[ClawR] = 0;
+	//motor[ClawL] = 0;
+	//motor[ClawR] = 0;
+	ZeroClaw();
 
 }
+
+void AutonomousCubeLeft()
+{
+  ClawOpen();
+	sleep(600);
+	ZeroClaw();
+	sleep(50);
+	ClawClose();
+	sleep(154);
+	ZeroClaw();
+
+	ArmDown();
+	sleep(200);
+	ZeroArm();
+
+	MoveForward(850);
+
+	ClawOpen();
+	sleep(600);
+
+	TurnLeft();
+
+	ArmUp();
+	sleep(500);
+
+
+	MoveBackwards();
+
+	ArmUp();
+
+
+	sleep(1000);
+
+	ZeroDrive();
+
+	ZeroArm();
+
+	ClawClose();
+	sleep(50);
+
+	ZeroClaw();
+}
+
+void AutonomousGeneric()
+{
+	// TODO impl this
+}
+
+
+
 // for movement
 // 500 is 30 inches (including drifting) 1 square
 
@@ -197,14 +399,30 @@ void AutonomousCubeRight()
 
 typedef enum k_autonomous_debug
 {
-	AUTONOMOUS_TURN = 0,
+	AUTONOMOUS_TURN_RIGHT = 0,
+	AUTONOMOUS_TURN_LEFT,
 	AUTONOMOUS_FORWARD,
+	AUTONOMOUS_BACKWARD,
+	AUTONOMOUS_ARM_UP,
+	AUTONOMOUS_ARM_DOWN,
+	AUTONOMOUS_LAST,
 } autonomous_debug_t;
+
+string autonomous_debug_strings[] =
+{
+	"AUTONOMOUS_TURN_RIGHT",
+	"AUTONOMOUS_TURN_LEFT",
+	"AUTONOMOUS_FORWARD",
+	"AUTONOMOUS_BACKWARD",
+	"AUTONOMOUS_ARM_UP",
+	"AUTONOMOUS_ARM_DOWN",
+};
 
 #define AUTONOMOUS_DEBUG
 
 #ifdef AUTONOMOUS_DEBUG
 
+// debug autonomous
 void pre_auton()
 {
   // Set bStopTasksBetweenModes to false if you want to keep user created tasks
@@ -237,14 +455,9 @@ task autonomous()
 			sleep(100);
 			buttonsPressed = nLCDButtons;
 
-			if(buttonsPressed == 3)
+			if(buttonsPressed == 5)
 			{
-				mode = AUTONOMOUS_TURN;
-
-			}
-			else if(buttonsPressed == 6)
-			{
-				mode = AUTONOMOUS_FORWARD;
+				mode = (mode + 1) % AUTONOMOUS_LAST;
 			}
 			else if(buttonsPressed == 1)
 			{
@@ -255,39 +468,45 @@ task autonomous()
 				time += 10;
 			}
 
-
-
-			if(mode == AUTONOMOUS_TURN)
-			{
-				clearLCDLine(0);
-				clearLCDLine(1);
-				displayLCDString(0, 0, "TURN");
-				displayLCDNumber(1, 0, time);
-			}
-			else if(mode == AUTONOMOUS_FORWARD)
-			{
-				clearLCDLine(0);
-				clearLCDLine(1);
-				displayLCDString(0, 0, "FORWARD");
-				displayLCDNumber(1, 0, time);
-			}
-
+			clearLCDLine(0);
+			clearLCDLine(1);
+			displayLCDString(0, 0, autonomous_debug_strings[mode]);
+			displayLCDNumber(1, 0, time);
 		}
 		while(buttonsPressed != 2);
 
-		if(mode == AUTONOMOUS_TURN)
+		if(mode == AUTONOMOUS_TURN_RIGHT)
 		{
 			TurnRight(time);
+		}
+		else if(mode == AUTONOMOUS_TURN_LEFT)
+		{
+			TurnLeft(time);
 		}
 		else if(mode == AUTONOMOUS_FORWARD)
 		{
 			MoveForward(time);
 		}
+		else if(mode == AUTONOMOUS_BACKWARD)
+		{
+			MoveBackwards(time);
+		}
+		else if(mode == AUTONOMOUS_ARM_UP)
+		{
+			ArmUp(time);
+		}
+		else if(mode == AUTONOMOUS_ARM_DOWN)
+		{
+			ArmDown(time);
+		}
 	}
-
 }
 
 #else
+
+// ============================================================
+// COMPETITION AUTONOMOUS
+// ============================================================
 
 // TODO: Fix this - cube left mode and fix the menu system to use correct types
 
@@ -298,7 +517,7 @@ typedef enum k_autonomous_mode
 	AUTONOMOUS_CUBE_RIGHT,
 } autonomous_mode_t;
 
-const char *autonomous_mode_strings =
+string autonomous_mode_strings[] =
 {
 	"generic",
 	"cube right",
@@ -306,7 +525,9 @@ const char *autonomous_mode_strings =
 };
 
 // global for the autonomous mode selected
-autonomous_mode_t g_autonomous_mode;
+// the default autonomous mode is generic
+// TODO: change this if we need to
+autonomous_mode_t g_autonomous_mode = AUTONOMOUS_GENERIC;
 
 void pre_auton()
 {
@@ -323,60 +544,50 @@ void pre_auton()
   bLCDBacklight = true;
 
   int buttonsPressed = 0;
+ 	int lastButtons = 0;
+
+ 	bool buttonsEqual = 0;
 
 	int time;
 
 	while(true)
 	{
-		do
+		sleep(100);
+		buttonsPressed = nLCDButtons;
+
+		if(buttonsPressed == 2)
 		{
-			sleep(100);
-			buttonsPressed = nLCDButtons;
-
-			if(buttonsPressed == 3)
-			{
-				g_autonomous_mode = AUTONOMOUS_TURN;
-
-			}
-			else if(buttonsPressed == 6)
-			{
-				mg_autonomous_mode = AUTONOMOUS_FORWARD;
-			}
-			else if(buttonsPressed == 1)
-			{
-				time -= 10;
-			}
-			else if(buttonsPressed == 4)
-			{
-				time += 10;
-			}
-
-			if(mode == AUTONOMOUS_TURN)
-			{
-				clearLCDLine(0);
-				clearLCDLine(1);
-				displayLCDString(0, 0, "TURN");
-				displayLCDNumber(1, 0, time);
-			}
-			else if(mode == AUTONOMOUS_FORWARD)
-			{
-				clearLCDLine(0);
-				clearLCDLine(1);
-				displayLCDString(0, 0, "FORWARD");
-				displayLCDNumber(1, 0, time);
-			}
+			g_autonomous_mode = AUTONOMOUS_GENERIC;
 
 		}
-		while(buttonsPressed != 2);
+		else if(buttonsPressed == 1)
+		{
+			g_autonomous_mode = AUTONOMOUS_CUBE_LEFT;
+		}
+		else if(buttonsPressed == 4)
+		{
+			g_autonomous_mode = AUTONOMOUS_CUBE_RIGHT;
+		}
 
-		if(mode == AUTONOMOUS_TURN)
+		// display the currently selected mode from the list
+		clearLCDLine(0);
+		displayLCDString(0, 0, autonomous_mode_strings[g_autonomous_mode]);
+
+		clearLCDLine(1);
+		displayLCDString(1, 0, "Press button again to select...");
+
+		if(lastButtons == buttonsPressed)
 		{
-			TurnRight(time);
+			// when the button is pressed twice in a row it is selected
+			clearLCDLine(0);
+			displayLCDString(0, 0, autonomous_mode_strings[g_autonomous_mode]);
+			clearLCDLine(1);
+			displayLCDString(0, 0, "selected");
+			break;
 		}
-		else if(mode == AUTONOMOUS_FORWARD)
-		{
-			MoveForward(time);
-		}
+
+		// use the new buttons if a new buttons was pressed
+		lastButtons = buttonsPressed ? buttonsPressed : lastButtons;
 	}
 }
 
@@ -399,17 +610,6 @@ task autonomous()
 
 #endif
 
-/*---------------------------------------------------------------------------*/
-/*                                                                           */
-/*                              User Control Task                            */
-/*                                                                           */
-/*  This task is used to control your robot during the user control phase of */
-/*  a VEX Competition.                                                       */
-/*                                                                           */
-/*  You must modify the code to add your own robot specific commands here.   */
-/*---------------------------------------------------------------------------*/
-
-char lcdDisplay[10];
 
 task usercontrol()
 {
