@@ -385,68 +385,6 @@ void AutonomousCubeLeft()
 
 void AutonomousGeneric()
 {
-	//motor[ClawL] = 127;
-	//motor[ClawR] = 127;
-  ClawClose();
-	sleep(600);
-	//motor[ClawL] = 0;
-	//motor[ClawR] = 0;
-	ZeroClaw();
-	sleep(50);
-	//motor[ClawL] = -127;
-	//motor[ClawR] = -127;
-	ClawOpen();
-	sleep(154);
-	//motor[ClawL] = 0;
-	//motor[ClawR] = 0;
-	ZeroClaw();
-	//motor[LiftLD] = -127;
-	//motor[LiftRD] = -127;
-	ArmDown();
-	sleep(200);
-	//motor[LiftRD] = 0;
-	//motor[LiftRD] = 0;
-	ZeroArm();
-	MoveForward(850);
-	motor[ClawL] = 127;
-	motor[ClawR] = 127;
-	//ClawClose();
-
-	//turning
-	//motor[DriveL1] = -127;
-	//motor[DriveL2] = -127;
-	//motor[DriveL3] = -127;
-	//motor[DriveR1] = 127;
-	//motor[DriveR2] = 127;
-	//motor[DriveR3] = 127;
-
-	//motor[LiftLD] = 127;
-	//motor[LiftRD] = 127;
-
-	//motor[DriveL1] = -127;
-	//motor[DriveL2] = -127;
-	//motor[DriveL3] = -127;
-	//motor[DriveR1] = -127;
-	//motor[DriveR2] = -127;
-	//motor[DriveR3] = -127;
-
-	//motor[LiftLD] = 127;
-	//motor[LiftRD] = 127;
-
-	//motor[DriveL1] = 0;
-	//motor[DriveL2] = 0;
-	//motor[DriveL3] = 0;
-	//motor[DriveR1] = 0;
-	//motor[DriveR2] = 0;
-	//motor[DriveR3] = 0;
-
-	//motor[LiftLD] = 0;
-	//motor[LiftRD] = 0;
-
-	//motor[ClawL] = -127;
-	//motor[ClawR] = -127;
-	//motor[ClawL] = 0;
-	//motor[ClawR] = 0;
 }
 
 
@@ -466,7 +404,7 @@ typedef enum k_autonomous_debug
 	AUTONOMOUS_BACKWARD,
 	AUTONOMOUS_ARM_UP,
 	AUTONOMOUS_ARM_DOWN,
-	AUTONOMOUS_LAST,
+	AUTONOMOUS_DEBUG_LAST,
 } autonomous_debug_t;
 
 string autonomous_debug_strings[] =
@@ -480,98 +418,6 @@ string autonomous_debug_strings[] =
 };
 
 
-// =====================================================
-// AUTONOMOUS DEBUG CONTROL
-// =====================================================
-
-// comment this out in order to enable competition autonomous mode
-// if this is uncommented it will run the debug autonomous
-//#define AUTONOMOUS_DEBUG
-
-#ifdef AUTONOMOUS_DEBUG
-
-// debug autonomous
-void pre_auton()
-{
-  // Set bStopTasksBetweenModes to false if you want to keep user created tasks
-  // running between Autonomous and Driver controlled modes. You will need to
-  // manage all user created tasks if set to false.
-  bStopTasksBetweenModes = false;
-
-	// Set bDisplayCompetitionStatusOnLcd to false if you don't want the LCD
-	// used by the competition include file, for example, you might want
-	// to display your team name on the LCD in this function.
-	// bDisplayCompetitionStatusOnLcd = false;
-
-  bLCDBacklight = true;
-}
-
-// debug autonomous
-task autonomous()
-{
-	int buttonsPressed = 0;
-
-	int time;
-
-	autonomous_debug_t mode;
-
-	while(true)
-	{
-
-		do
-		{
-			sleep(100);
-			buttonsPressed = nLCDButtons;
-
-			if(buttonsPressed == 5)
-			{
-				mode = (mode + 1) % AUTONOMOUS_LAST;
-			}
-			else if(buttonsPressed == 1)
-			{
-				time -= 10;
-			}
-			else if(buttonsPressed == 4)
-			{
-				time += 10;
-			}
-
-			clearLCDLine(0);
-			clearLCDLine(1);
-			displayLCDString(0, 0, autonomous_debug_strings[mode]);
-			displayLCDNumber(1, 0, time);
-		}
-		while(buttonsPressed != 2);
-
-		if(mode == AUTONOMOUS_TURN_RIGHT)
-		{
-			TurnRight(time);
-		}
-		else if(mode == AUTONOMOUS_TURN_LEFT)
-		{
-			TurnLeft(time);
-		}
-		else if(mode == AUTONOMOUS_FORWARD)
-		{
-			MoveForward(time);
-		}
-		else if(mode == AUTONOMOUS_BACKWARD)
-		{
-			MoveBackwards(time);
-		}
-		else if(mode == AUTONOMOUS_ARM_UP)
-		{
-			ArmUp(time);
-		}
-		else if(mode == AUTONOMOUS_ARM_DOWN)
-		{
-			ArmDown(time);
-		}
-	}
-}
-
-#else
-
 // ============================================================
 // COMPETITION AUTONOMOUS
 // ============================================================
@@ -583,6 +429,8 @@ typedef enum k_autonomous_mode
 	AUTONOMOUS_GENERIC = 0,
 	AUTONOMOUS_CUBE_RIGHT,
 	AUTONOMOUS_CUBE_LEFT,
+	AUTONOMOUS_DEBUG,
+	AUTONOMOUS_MODE_LAST,
 } autonomous_mode_t;
 
 string autonomous_mode_strings[] =
@@ -590,6 +438,7 @@ string autonomous_mode_strings[] =
 	"generic",
 	"cube right",
 	"cube left",
+	"debug",
 };
 
 // global for the autonomous mode selected
@@ -612,7 +461,6 @@ void pre_auton()
   bLCDBacklight = true;
 
   int buttonsPressed = 0;
- 	int lastButtons = -1;
 
  	bool buttonsEqual = 0;
 
@@ -620,30 +468,17 @@ void pre_auton()
 
 	while(true)
 	{
-		sleep(1000);
+		sleep(100);
 		buttonsPressed = nLCDButtons;
 
-		if(buttonsPressed == 2)
+		// right button cycles through modes
+		// center button selects them
+		// debug mode is its own autonomous mode
+		if(buttonsPressed == 4)
 		{
-			g_autonomous_mode = AUTONOMOUS_GENERIC;
+			g_autonomous_mode = (g_autonomous_mode + 1) % AUTONOMOUS_MODE_LAST;
 		}
-		else if(buttonsPressed == 1)
-		{
-			g_autonomous_mode = AUTONOMOUS_CUBE_LEFT;
-		}
-		else if(buttonsPressed == 4)
-		{
-			g_autonomous_mode = AUTONOMOUS_CUBE_RIGHT;
-		}
-
-		// display the currently selected mode from the list
-		clearLCDLine(0);
-		displayLCDString(0, 0, autonomous_mode_strings[g_autonomous_mode]);
-
-		clearLCDLine(1);
-		displayLCDString(1, 0, "Press button again to select...");
-
-		if(lastButtons == buttonsPressed)
+		else if(buttonsPressed == 2)
 		{
 			// when the button is pressed twice in a row it is selected
 			clearLCDLine(0);
@@ -653,8 +488,12 @@ void pre_auton()
 			break;
 		}
 
-		// use the new buttons if a new buttons was pressed
-		lastButtons = buttonsPressed ? buttonsPressed : lastButtons;
+		// display the currently selected mode from the list
+		clearLCDLine(0);
+		displayLCDString(0, 0, autonomous_mode_strings[g_autonomous_mode]);
+
+		clearLCDLine(1);
+		displayLCDString(1, 0, "Press center to select...");
 	}
 }
 
@@ -672,11 +511,69 @@ task autonomous()
 	{
 		AutonomousCubeRight();
 	}
+	else if(g_autonomous_mode == AUTONOMOUS_DEBUG)
+	{
+		int buttonsPressed = 0;
 
+		int time;
+
+		autonomous_debug_t mode;
+
+		while(true)
+		{
+
+			do
+			{
+				sleep(100);
+				buttonsPressed = nLCDButtons;
+
+				if(buttonsPressed == 5)
+				{
+					mode = (mode + 1) % AUTONOMOUS_DEBUG_LAST;
+				}
+				else if(buttonsPressed == 1)
+				{
+					time -= 10;
+				}
+				else if(buttonsPressed == 4)
+				{
+					time += 10;
+				}
+
+				clearLCDLine(0);
+				clearLCDLine(1);
+				displayLCDString(0, 0, autonomous_debug_strings[mode]);
+				displayLCDNumber(1, 0, time);
+			}
+			while(buttonsPressed != 2);
+
+			if(mode == AUTONOMOUS_TURN_RIGHT)
+			{
+				TurnRight(time);
+			}
+			else if(mode == AUTONOMOUS_TURN_LEFT)
+			{
+				TurnLeft(time);
+			}
+			else if(mode == AUTONOMOUS_FORWARD)
+			{
+				MoveForward(time);
+			}
+			else if(mode == AUTONOMOUS_BACKWARD)
+			{
+				MoveBackwards(time);
+			}
+			else if(mode == AUTONOMOUS_ARM_UP)
+			{
+				ArmUp(time);
+			}
+			else if(mode == AUTONOMOUS_ARM_DOWN)
+			{
+				ArmDown(time);
+			}
+		}
+	}
 }
-
-#endif
-
 
 task usercontrol()
 {
