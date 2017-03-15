@@ -184,7 +184,7 @@ void TurnRight()
 
 void ClawOpen(int time)
 {
-	int power = 127;
+	int power = 60;
 
 	motor[ClawL] = -power;
 	motor[ClawR] = -power;
@@ -196,7 +196,7 @@ void ClawOpen(int time)
 
 void ClawOpen()
 {
-	int power = 127;
+	int power = 60;
 
 	motor[ClawL] = -power;
 	motor[ClawR] = -power;
@@ -204,7 +204,7 @@ void ClawOpen()
 
 void ClawClose(int time)
 {
-	int power = 127;
+	int power = 60;
 
 	motor[ClawL] = power;
 	motor[ClawR] = power;
@@ -216,7 +216,7 @@ void ClawClose(int time)
 
 void ClawClose()
 {
-	int power = 127;
+	int power = 60;
 
 	motor[ClawL] = power;
 	motor[ClawR] = power;
@@ -263,91 +263,111 @@ void ArmDown()
 void StartClaw()
 {
 	// you should run this to setup the claw for autnomous
-	ClawClose();
-	sleep(600);
-	//motor[ClawL] = 0;
-	//motor[ClawR] = 0;
+	motor(ClawL) = 127;
+	motor(ClawR) = 127;
+	sleep(20);
+	motor(ClawL) = -127;
+	motor(ClawR) = -127;
+	sleep(20);
+	motor(ClawL) = 127;
+	motor(ClawR) = 127;
+	sleep(650);
 	ZeroClaw();
 	sleep(50);
-	//motor[ClawL] = -127;
-	//motor[ClawR] = -127;
 	ClawOpen();
-	sleep(154);
-	//motor[ClawL] = 0;
-	//motor[ClawR] = 0;
+	sleep(400);
 	ZeroClaw();
 }
-
-void AutonomousCubeRight()
+void amazingDriverSkills()
 {
-
 	StartClaw();
-
-	//motor[LiftLD] = -127;
-	//motor[LiftRD] = -127;
-	ArmDown();
-	sleep(200);
-	//motor[LiftLD] = 0;
-	//motor[LiftRD] = 0;
-	ZeroArm();
-	MoveForward(850);
-	//motor[ClawL] = 127;
-	//motor[ClawR] = 127;
+	MoveBackwards();
+	sleep(250);
+	int i = 0;
+	for(i=0; i<3; i++)
+	{
+		ZeroDrive();
+		sleep(3000);
+		ClawClose();
+		sleep(1000);
+		ArmUp();
+		sleep(600);
+		MoveBackwards();
+		sleep(900);
+		ZeroDrive();
+		ZeroArm();
+		ClawOpen();
+		sleep(100);
+		ZeroClaw();
+		ArmDown();
+		sleep(1400);
+		ZeroArm();
+		MoveForward();
+		sleep(600);
+	}
+	ZeroDrive();
+	sleep(500);
+	ClawOpen();
+	TurnLeft();
+	sleep(50);
+	ZeroClaw();
+	sleep(180);
+	ZeroDrive();
 	ClawClose();
 	sleep(600);
-
-	//turning
-	//motor[DriveL1] = -127;
-	//motor[DriveL2] = -127;
-	//motor[DriveL3] = -127;
-	//motor[DriveR1] = 127;
-	//motor[DriveR2] = 127;
-	//motor[DriveR3] = 127;
+	MoveForward();
+	sleep(500);
 	TurnRight();
-
-	//motor[LiftLD] = 127;
-	//motor[LiftRD] = 127;
 	ArmUp();
 	sleep(500);
 
-
-	//motor[DriveL1] = -127;
-	//motor[DriveL2] = -127;
-	//motor[DriveL3] = -127;
-	//motor[DriveR1] = -127;
-	//motor[DriveR2] = -127;
-	//motor[DriveR3] = -127;
 	MoveBackwards();
 
-	//motor[LiftLD] = 127;
-	//motor[LiftRD] = 127;
 	ArmUp();
 
 
 	sleep(1000);
-	//motor[DriveL1] = 0;
-	//motor[DriveL2] = 0;
-	//motor[DriveL3] = 0;
-	//motor[DriveR1] = 0;
-	//motor[DriveR2] = 0;
-	//motor[DriveR3] = 0;
-	ZeroDrive();
 
-	//motor[LiftLD] = 0;
-	//motor[LiftRD] = 0;
+	ZeroDrive();
 	ZeroArm();
 
-	//motor[ClawL] = -127;
-	//motor[ClawR] = -127;
 	ClawOpen();
 	sleep(50);
-	//motor[ClawL] = 0;
-	//motor[ClawR] = 0;
+	ZeroClaw();
+}
+void AutonomousCubeLeft()
+{
+
+	StartClaw();
+
+	ArmDown();
+	sleep(200);
+	ZeroArm();
+	MoveForward(850);
+	ClawClose();
+	sleep(1000);
+
+	TurnRight();
+	ArmUp();
+	sleep(500);
+
+	MoveBackwards();
+
+	ArmUp();
+
+
+	sleep(1000);
+
+	ZeroDrive();
+	ZeroArm();
+
+	ClawOpen();
+	sleep(50);
 	ZeroClaw();
 
 }
 
-void AutonomousCubeLeft()
+void AutonomousCubeRight()
 {
   StartClaw();
 
@@ -358,7 +378,7 @@ void AutonomousCubeLeft()
 	MoveForward(850);
 
 	ClawClose();
-	sleep(600);
+	sleep(1000);
 
 	TurnLeft();
 
@@ -386,16 +406,15 @@ void AutonomousCubeLeft()
 void AutonomousGeneric()
 {
 	StartClaw();
-
-	ClawOpen();
-	sleep(5);
-	ClawClose();
-
 	sleep(200);
+	ClawClose();
+	sleep(50);
+	ZeroClaw();
 	ArmUp();
 	MoveForward();
 	sleep(600);
 	ZeroArm();
+	ZeroDrive();
 }
 
 
@@ -445,6 +464,7 @@ typedef enum k_autonomous_mode
 	AUTONOMOUS_CUBE_RIGHT,
 	AUTONOMOUS_CUBE_LEFT,
 	AUTONOMOUS_DEBUG,
+	AMAZING_PROG,
 	AUTONOMOUS_MODE_LAST,
 } autonomous_mode_t;
 
@@ -454,6 +474,7 @@ string autonomous_mode_strings[] =
 	"cube right",
 	"cube left",
 	"debug",
+	"prog skill",
 };
 
 // global for the autonomous mode selected
@@ -525,6 +546,10 @@ task autonomous()
 	else if(g_autonomous_mode == AUTONOMOUS_CUBE_RIGHT)
 	{
 		AutonomousCubeRight();
+	}
+	else if(g_autonomous_mode == AMAZING_PROG)
+	{
+		amazingDriverSkills();
 	}
 	else if(g_autonomous_mode == AUTONOMOUS_DEBUG)
 	{
