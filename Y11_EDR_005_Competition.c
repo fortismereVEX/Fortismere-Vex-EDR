@@ -385,6 +385,17 @@ void AutonomousCubeLeft()
 
 void AutonomousGeneric()
 {
+	StartClaw();
+
+	ClawOpen();
+	sleep(5);
+	ClawClose();
+
+	sleep(200);
+	ArmUp();
+	MoveForward();
+	sleep(600);
+	ZeroArm();
 }
 
 
@@ -404,6 +415,8 @@ typedef enum k_autonomous_debug
 	AUTONOMOUS_BACKWARD,
 	AUTONOMOUS_ARM_UP,
 	AUTONOMOUS_ARM_DOWN,
+	AUTONOMOUS_CLAW_OPEN,
+	AUTONOMOUS_CLAW_CLOSE,
 	AUTONOMOUS_DEBUG_LAST,
 } autonomous_debug_t;
 
@@ -415,6 +428,8 @@ string autonomous_debug_strings[] =
 	"BACKWARD",
 	"ARM_UP",
 	"ARM_DOWN",
+	"CLAW_OPEN",
+	"CLAW_CLOSE"
 };
 
 
@@ -570,6 +585,15 @@ task autonomous()
 			else if(mode == AUTONOMOUS_ARM_DOWN)
 			{
 				ArmDown(time);
+			}
+			//these two are inverted for some reason.... ? -Sam
+			else if(mode == AUTONOMOUS_CLAW_OPEN)
+			{
+				ClawClose(time);
+			}
+			else if(mode == AUTONOMOUS_CLAW_CLOSE)
+			{
+				ClawOpen(time);
 			}
 		}
 	}
