@@ -260,11 +260,10 @@ void ArmDown()
 	motor[LiftRD] = -power;
 }
 
-void AutonomousCubeRight()
+void StartClaw()
 {
-	//motor[ClawL] = 127;
-	//motor[ClawR] = 127;
-  ClawOpen();
+	// you should run this to setup the claw for autnomous
+	ClawClose();
 	sleep(600);
 	//motor[ClawL] = 0;
 	//motor[ClawR] = 0;
@@ -272,22 +271,29 @@ void AutonomousCubeRight()
 	sleep(50);
 	//motor[ClawL] = -127;
 	//motor[ClawR] = -127;
-	ClawClose();
+	ClawOpen();
 	sleep(154);
 	//motor[ClawL] = 0;
 	//motor[ClawR] = 0;
 	ZeroClaw();
+}
+
+void AutonomousCubeRight()
+{
+
+	StartClaw();
+
 	//motor[LiftLD] = -127;
 	//motor[LiftRD] = -127;
 	ArmDown();
 	sleep(200);
-	//motor[LiftRD] = 0;
+	//motor[LiftLD] = 0;
 	//motor[LiftRD] = 0;
 	ZeroArm();
 	MoveForward(850);
 	//motor[ClawL] = 127;
 	//motor[ClawR] = 127;
-	ClawOpen();
+	ClawClose();
 	sleep(600);
 
 	//turning
@@ -333,7 +339,7 @@ void AutonomousCubeRight()
 
 	//motor[ClawL] = -127;
 	//motor[ClawR] = -127;
-	ClawClose();
+	ClawOpen();
 	sleep(50);
 	//motor[ClawL] = 0;
 	//motor[ClawR] = 0;
@@ -343,13 +349,7 @@ void AutonomousCubeRight()
 
 void AutonomousCubeLeft()
 {
-  ClawOpen();
-	sleep(600);
-	ZeroClaw();
-	sleep(50);
-	ClawClose();
-	sleep(154);
-	ZeroClaw();
+  StartClaw();
 
 	ArmDown();
 	sleep(200);
@@ -357,7 +357,7 @@ void AutonomousCubeLeft()
 
 	MoveForward(850);
 
-	ClawOpen();
+	ClawClose();
 	sleep(600);
 
 	TurnLeft();
@@ -377,7 +377,7 @@ void AutonomousCubeLeft()
 
 	ZeroArm();
 
-	ClawClose();
+	ClawOpen();
 	sleep(50);
 
 	ZeroClaw();
@@ -385,7 +385,68 @@ void AutonomousCubeLeft()
 
 void AutonomousGeneric()
 {
-	// TODO impl this
+	//motor[ClawL] = 127;
+	//motor[ClawR] = 127;
+  ClawClose();
+	sleep(600);
+	//motor[ClawL] = 0;
+	//motor[ClawR] = 0;
+	ZeroClaw();
+	sleep(50);
+	//motor[ClawL] = -127;
+	//motor[ClawR] = -127;
+	ClawOpen();
+	sleep(154);
+	//motor[ClawL] = 0;
+	//motor[ClawR] = 0;
+	ZeroClaw();
+	//motor[LiftLD] = -127;
+	//motor[LiftRD] = -127;
+	ArmDown();
+	sleep(200);
+	//motor[LiftRD] = 0;
+	//motor[LiftRD] = 0;
+	ZeroArm();
+	MoveForward(850);
+	motor[ClawL] = 127;
+	motor[ClawR] = 127;
+	//ClawClose();
+
+	//turning
+	//motor[DriveL1] = -127;
+	//motor[DriveL2] = -127;
+	//motor[DriveL3] = -127;
+	//motor[DriveR1] = 127;
+	//motor[DriveR2] = 127;
+	//motor[DriveR3] = 127;
+
+	//motor[LiftLD] = 127;
+	//motor[LiftRD] = 127;
+
+	//motor[DriveL1] = -127;
+	//motor[DriveL2] = -127;
+	//motor[DriveL3] = -127;
+	//motor[DriveR1] = -127;
+	//motor[DriveR2] = -127;
+	//motor[DriveR3] = -127;
+
+	//motor[LiftLD] = 127;
+	//motor[LiftRD] = 127;
+
+	//motor[DriveL1] = 0;
+	//motor[DriveL2] = 0;
+	//motor[DriveL3] = 0;
+	//motor[DriveR1] = 0;
+	//motor[DriveR2] = 0;
+	//motor[DriveR3] = 0;
+
+	//motor[LiftLD] = 0;
+	//motor[LiftRD] = 0;
+
+	//motor[ClawL] = -127;
+	//motor[ClawR] = -127;
+	//motor[ClawL] = 0;
+	//motor[ClawR] = 0;
 }
 
 
@@ -520,8 +581,8 @@ task autonomous()
 typedef enum k_autonomous_mode
 {
 	AUTONOMOUS_GENERIC = 0,
-	AUTONOMOUS_CUBE_LEFT,
 	AUTONOMOUS_CUBE_RIGHT,
+	AUTONOMOUS_CUBE_LEFT,
 } autonomous_mode_t;
 
 string autonomous_mode_strings[] =
