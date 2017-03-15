@@ -186,8 +186,8 @@ void ClawOpen(int time)
 {
 	int power = 127;
 
-	motor[ClawL] = power;
-	motor[ClawR] = power;
+	motor[ClawL] = -power;
+	motor[ClawR] = -power;
 
 	sleep(time);
 
@@ -198,16 +198,16 @@ void ClawOpen()
 {
 	int power = 127;
 
-	motor[ClawL] = power;
-	motor[ClawR] = power;
+	motor[ClawL] = -power;
+	motor[ClawR] = -power;
 }
 
 void ClawClose(int time)
 {
 	int power = 127;
 
-	motor[ClawL] = -power;
-	motor[ClawR] = -power;
+	motor[ClawL] = power;
+	motor[ClawR] = power;
 
 	sleep(time);
 
@@ -218,8 +218,8 @@ void ClawClose()
 {
 	int power = 127;
 
-	motor[ClawL] = -power;
-	motor[ClawR] = -power;
+	motor[ClawL] = power;
+	motor[ClawR] = power;
 }
 
 void ArmUp(int time)
@@ -297,7 +297,7 @@ void AutonomousCubeRight()
 	//motor[DriveR1] = 127;
 	//motor[DriveR2] = 127;
 	//motor[DriveR3] = 127;
-	TurnLeft();
+	TurnRight();
 
 	//motor[LiftLD] = 127;
 	//motor[LiftRD] = 127;
@@ -360,7 +360,7 @@ void AutonomousCubeLeft()
 	ClawOpen();
 	sleep(600);
 
-	TurnRight();
+	TurnLeft();
 
 	ArmUp();
 	sleep(500);
@@ -425,7 +425,7 @@ string autonomous_debug_strings[] =
 
 // comment this out in order to enable competition autonomous mode
 // if this is uncommented it will run the debug autonomous
-#define AUTONOMOUS_DEBUG
+//#define AUTONOMOUS_DEBUG
 
 #ifdef AUTONOMOUS_DEBUG
 
@@ -692,7 +692,7 @@ task usercontrol()
 			motor[LiftLD] = 0;
 		}
 		//Claw
-		if (vexRT[Btn6U]) //Open
+		if (vexRT[Btn6U]) // Close
 		{
 			if(clawTick > 1000)
 			{
@@ -704,7 +704,7 @@ task usercontrol()
 			clawTick += 1;
 
 		}
-		else if (vexRT[Btn6D]) //Close
+		else if (vexRT[Btn6D]) // Open
 		{
 			if(clawTick > 1000)
 			{
