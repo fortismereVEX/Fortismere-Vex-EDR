@@ -271,70 +271,20 @@ void StartClaw()
 	sleep(20);
 	motor(ClawL) = 127;
 	motor(ClawR) = 127;
-	sleep(650);
+	sleep(200);
+	ArmUp();
+	sleep(50);
+	ZeroArm();
+	sleep(400);
+	ArmDown();
 	ZeroClaw();
 	sleep(50);
 	ClawOpen();
 	sleep(400);
 	ZeroClaw();
-}
-void amazingDriverSkills()
-{
-	StartClaw();
-	MoveBackwards();
-	sleep(250);
-	int i = 0;
-	for(i=0; i<3; i++)
-	{
-		ZeroDrive();
-		sleep(3000);
-		ClawClose();
-		sleep(1000);
-		ArmUp();
-		sleep(600);
-		MoveBackwards();
-		sleep(900);
-		ZeroDrive();
-		ZeroArm();
-		ClawOpen();
-		sleep(100);
-		ZeroClaw();
-		ArmDown();
-		sleep(1400);
-		ZeroArm();
-		MoveForward();
-		sleep(600);
-	}
-	ZeroDrive();
-	sleep(500);
-	ClawOpen();
-	TurnLeft();
-	sleep(50);
-	ZeroClaw();
-	sleep(180);
-	ZeroDrive();
-	ClawClose();
-	sleep(600);
-	MoveForward();
-	sleep(500);
-	TurnRight();
-	ArmUp();
-	sleep(500);
-
-	MoveBackwards();
-
-	ArmUp();
-
-
-	sleep(1000);
-
-	ZeroDrive();
 	ZeroArm();
-
-	ClawOpen();
-	sleep(50);
-	ZeroClaw();
 }
+
 void AutonomousCubeLeft()
 {
 
@@ -408,15 +358,133 @@ void AutonomousGeneric()
 	StartClaw();
 	sleep(200);
 	ClawClose();
-	sleep(50);
+	sleep(60);
 	ZeroClaw();
 	ArmUp();
 	MoveForward();
-	sleep(600);
+	sleep(650);
 	ZeroArm();
+	sleep(1400);
 	ZeroDrive();
 }
+void amazingDriverSkills()
+{
+	StartClaw();
+	MoveBackwards();
+	sleep(250);
+	int i = 0;
+	for(i=0; i<3; i++)
+	{
+		ZeroDrive();
+		sleep(3000);
+		ClawClose();
+		sleep(1000);
+		ArmUp();
+		//sleep(600); new sleep time below - delete if wrong
+		sleep(800);
+		MoveBackwards();
+		//sleep(900); new sleep time below - delete if wrong
+		sleep(1200);
+		ZeroDrive();
+		ZeroArm();
+		ClawOpen();
+		sleep(100);
+		ZeroClaw();
+		MoveForward();
 
+		sleep(600);
+		ArmDown();
+		sleep(1400);
+		ZeroDrive();
+		ZeroArm();
+	}
+	ArmUp();
+	ZeroDrive();
+	sleep(500);
+	ZeroArm();
+	sleep(200);
+	MoveForward();
+	sleep(800);
+	ZeroDrive();
+	sleep(200);
+	MoveBackwards();
+	sleep(700);
+	ZeroDrive();
+	sleep(200);
+	ArmDown();
+	sleep(380);
+	ArmUp();
+	sleep(30);
+	ZeroArm();
+	sleep(200);
+	TurnLeft();
+	sleep(290);
+	ZeroDrive();
+	sleep(200);
+	MoveForward();
+	sleep(2000);
+	ArmDown();
+	sleep(50);
+	ZeroArm();
+	sleep(1000);
+	ZeroDrive();
+	sleep(200);
+	ClawClose();
+	sleep(400);
+	TurnRight();
+	sleep(450);
+	ZeroDrive();
+	sleep(200);
+	ArmUp();
+	sleep(900);
+	MoveBackwards();
+	sleep(600);
+	ClawOpen();
+	sleep(200);
+	ZeroClaw();
+	ZeroArm();
+	ZeroDrive();
+	MoveBackwards();
+	ArmDown();
+	sleep(1000);
+	ZeroDrive();
+	TurnLeft();
+	ArmDown();
+	sleep(580);
+	ZeroDrive();
+	ClawOpen();
+	sleep(1000);
+	ZeroClaw();
+	AutonomousGeneric();
+	//sleep(500);
+	//ClawOpen();
+	//TurnLeft();
+	//sleep(50);
+	//ZeroClaw();
+	//sleep(230);
+	//ZeroDrive();
+	//MoveForward();
+	//sleep(500);
+	//ClawClose();
+	//sleep(600);
+	//TurnRight();
+	//ArmUp();
+	//sleep(500);
+
+	//MoveBackwards();
+
+	//ArmUp();
+
+
+	//sleep(1000);
+
+	//ZeroDrive();
+	//ZeroArm();
+
+	//ClawOpen();
+	//sleep(50);
+	//ZeroClaw();
+}
 
 
 // for movement
@@ -502,126 +570,132 @@ void pre_auton()
 
 	int time;
 
-	while(true)
-	{
-		sleep(100);
-		buttonsPressed = nLCDButtons;
+	//while(true)
+	//{
+	//	sleep(100);
+	//	buttonsPressed = nLCDButtons;
 
-		// right button cycles through modes
-		// center button selects them
-		// debug mode is its own autonomous mode
-		if(buttonsPressed == 4)
-		{
-			g_autonomous_mode = (g_autonomous_mode + 1) % AUTONOMOUS_MODE_LAST;
-		}
-		else if(buttonsPressed == 2)
-		{
-			// when the button is pressed twice in a row it is selected
-			clearLCDLine(0);
-			displayLCDString(0, 0, autonomous_mode_strings[g_autonomous_mode]);
-			clearLCDLine(1);
-			displayLCDString(0, 0, "selected");
-			break;
-		}
+	//	// right button cycles through modes
+	//	// center button selects them
+	//	// debug mode is its own autonomous mode
+	//	if(buttonsPressed == 4)
+	//	{
+	//		g_autonomous_mode = (g_autonomous_mode + 1) % AUTONOMOUS_MODE_LAST;
+	//	}
+	//	else if(buttonsPressed == 2)
+	//	{
+	//		// when the button is pressed twice in a row it is selected
+	//		clearLCDLine(0);
+	//		displayLCDString(0, 0, autonomous_mode_strings[g_autonomous_mode]);
+	//		clearLCDLine(1);
+	//		displayLCDString(0, 0, "selected");
+	//		break;
+	//		//Safety feature - Stop LCD control because the game has entered driver control mode
+	//	if (!(bIfiAutonomousMode || bIfiRobotDisabled))
+	//	{
+	//			break;
+	//	}
+
+	//	}
 
 		// display the currently selected mode from the list
-		clearLCDLine(0);
-		displayLCDString(0, 0, autonomous_mode_strings[g_autonomous_mode]);
+		//clearLCDLine(0);
+		//displayLCDString(0, 0, autonomous_mode_strings[g_autonomous_mode]);
 
-		clearLCDLine(1);
-		displayLCDString(1, 0, "Press center to select...");
-	}
+		//clearLCDLine(1);
+		//displayLCDString(1, 0, "Press center to select...");
+	//}
 }
 
 task autonomous()
 {
-	if(g_autonomous_mode == AUTONOMOUS_GENERIC)
-	{
-		AutonomousGeneric();
-	}
-	else if(g_autonomous_mode == AUTONOMOUS_CUBE_LEFT)
-	{
-		AutonomousCubeLeft();
-	}
-	else if(g_autonomous_mode == AUTONOMOUS_CUBE_RIGHT)
-	{
-		AutonomousCubeRight();
-	}
-	else if(g_autonomous_mode == AMAZING_PROG)
-	{
+	//if(g_autonomous_mode == AUTONOMOUS_GENERIC)
+	//{
 		amazingDriverSkills();
-	}
-	else if(g_autonomous_mode == AUTONOMOUS_DEBUG)
-	{
-		int buttonsPressed = 0;
+	//}
+	//else if(g_autonomous_mode == AUTONOMOUS_CUBE_LEFT)
+	//{
+	//	AutonomousCubeLeft();
+	//}
+	//else if(g_autonomous_mode == AUTONOMOUS_CUBE_RIGHT)
+	//{
+	//	AutonomousCubeRight();
+	//}
+	//else if(g_autonomous_mode == AMAZING_PROG)
+	//{
+	//	amazingDriverSkills();
+	//}
+	//else if(g_autonomous_mode == AUTONOMOUS_DEBUG)
+	//{
+	//	int buttonsPressed = 0;
 
-		int time;
+	//	int time;
 
-		autonomous_debug_t mode;
+	//	autonomous_debug_t mode;
 
-		while(true)
-		{
+	//	while(true)
+	//	{
 
-			do
-			{
-				sleep(100);
-				buttonsPressed = nLCDButtons;
+	//		do
+	//		{
+	//			sleep(100);
+	//			buttonsPressed = nLCDButtons;
 
-				if(buttonsPressed == 5)
-				{
-					mode = (mode + 1) % AUTONOMOUS_DEBUG_LAST;
-				}
-				else if(buttonsPressed == 1)
-				{
-					time -= 10;
-				}
-				else if(buttonsPressed == 4)
-				{
-					time += 10;
-				}
+	//			if(buttonsPressed == 5)
+	//			{
+	//				mode = (mode + 1) % AUTONOMOUS_DEBUG_LAST;
+	//			}
+	//			else if(buttonsPressed == 1)
+	//			{
+	//				time -= 10;
+	//			}
+	//			else if(buttonsPressed == 4)
+	//			{
+	//				time += 10;
+	//			}
 
-				clearLCDLine(0);
-				clearLCDLine(1);
-				displayLCDString(0, 0, autonomous_debug_strings[mode]);
-				displayLCDNumber(1, 0, time);
-			}
-			while(buttonsPressed != 2);
+	//			clearLCDLine(0);
+	//			clearLCDLine(1);
+	//			displayLCDString(0, 0, autonomous_debug_strings[mode]);
+	//			displayLCDNumber(1, 0, time);
+	//		}
+	//		while(buttonsPressed != 2);
 
-			if(mode == AUTONOMOUS_TURN_RIGHT)
-			{
-				TurnRight(time);
-			}
-			else if(mode == AUTONOMOUS_TURN_LEFT)
-			{
-				TurnLeft(time);
-			}
-			else if(mode == AUTONOMOUS_FORWARD)
-			{
-				MoveForward(time);
-			}
-			else if(mode == AUTONOMOUS_BACKWARD)
-			{
-				MoveBackwards(time);
-			}
-			else if(mode == AUTONOMOUS_ARM_UP)
-			{
-				ArmUp(time);
-			}
-			else if(mode == AUTONOMOUS_ARM_DOWN)
-			{
-				ArmDown(time);
-			}
-			//these two are inverted for some reason.... ? -Sam
-			else if(mode == AUTONOMOUS_CLAW_OPEN)
-			{
-				ClawClose(time);
-			}
-			else if(mode == AUTONOMOUS_CLAW_CLOSE)
-			{
-				ClawOpen(time);
-			}
-		}
-	}
+	//		if(mode == AUTONOMOUS_TURN_RIGHT)
+	//		{
+	//			TurnRight(time);
+	//		}
+	//		else if(mode == AUTONOMOUS_TURN_LEFT)
+	//		{
+	//			TurnLeft(time);
+	//		}
+	//		else if(mode == AUTONOMOUS_FORWARD)
+	//		{
+	//			MoveForward(time);
+	//		}
+	//		else if(mode == AUTONOMOUS_BACKWARD)
+	//		{
+	//			MoveBackwards(time);
+	//		}
+	//		else if(mode == AUTONOMOUS_ARM_UP)
+	//		{
+	//			ArmUp(time);
+	//		}
+	//		else if(mode == AUTONOMOUS_ARM_DOWN)
+	//		{
+	//			ArmDown(time);
+	//		}
+	//		//these two are inverted for some reason.... ? -Sam
+	//		else if(mode == AUTONOMOUS_CLAW_OPEN)
+	//		{
+	//			ClawClose(time);
+	//		}
+	//		else if(mode == AUTONOMOUS_CLAW_CLOSE)
+	//		{
+	//			ClawOpen(time);
+	//		}
+	//	}
+	//}
 }
 
 task usercontrol()
