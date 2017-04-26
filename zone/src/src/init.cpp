@@ -24,7 +24,7 @@ void initializeIO() {
 	// initialise the lcd
 	lcdInit(uart1);
 	lcdClear(uart1);
-	lcdSetBacklight(uart1);
+	lcdSetBacklight(uart1, true);
 }
 
 /*

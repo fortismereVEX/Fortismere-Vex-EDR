@@ -2,6 +2,8 @@
 
 #include "main.h"
 
+#define MAX_DELAY (0xFFFFFFFF)
+
 // this file defines a common interface to display options on the lcd display
 
 // THE CODE IS CURRENTLY CONFIGURED TO USE UART1 AS THE DISPLAY PORT
@@ -60,13 +62,13 @@ namespace LCD
 	template<typename Enum>
 	void DisplayEnumOptions(Enum max, const char **strings, void(*callback)(Enum val))
 	{
-		mutexTake(g_mutex, MAX_DELAY);
+		mutexTake(LCD::g_mutex, MAX_DELAY);
 
 		// update state
-		g_Mode = LCDMode::Enum;
-		g_strings = strings;
-		g_max = (int)max;
-		g_callback = (void *)callback;
+		LCD::g_mode = LCD::Enum;
+		LCD::g_strings = strings;
+		LCD::g_max = (int)max;
+		LCD::g_callback = (void *)callback;
 
 		// say that we have updated the state
 		g_stateChanged = true;

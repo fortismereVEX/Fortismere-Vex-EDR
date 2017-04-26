@@ -1,5 +1,5 @@
-#include "lcdmenu.h"
-#include "util.h"
+#include "../include/lcdmenu.h"
+#include "../include/util.h"
 
 // define lcd state variables
 
@@ -7,15 +7,15 @@ Mutex LCD::g_mutex;
 
 LCD::LCDMode LCD::g_mode;
 
-void *LCD::g_value = nullptr;
+void *LCD::g_value;
 
 int LCD::g_interval;
 
 int LCD::g_messageWait;
 
-const char **LCD::g_strings = nullptr;
+const char **LCD::g_strings;
 
-extern const char *LCD::g_message = nullptr;
+extern const char *LCD::g_message;
 
 int LCD::g_max;
 
@@ -68,7 +68,7 @@ void LCD::LcdTask(void *param)
 
 					// let the current value become negative (correcting it just results in more problems)
 					// when accessing strings you need to get the abs() of the value
-					currentValue = (currentValue - 1) % LCD::g_max);
+					currentValue = (currentValue - 1) % LCD::g_max;
 				}
 				else if(buttonsPressed == 2) // center
 				{
@@ -84,7 +84,7 @@ void LCD::LcdTask(void *param)
 
 
 					// call the callback with the selected value
-					((void(*)(int))callback)(abs(currentValue));
+					((void(*)(int))LCD::g_callback)(abs(currentValue));
 
 					continue;
 				}
@@ -101,6 +101,7 @@ void LCD::LcdTask(void *param)
 
 				// wait for the delay interval
 				delay(LCD::g_messageWait);
+				LCD::g_message = NULL;
 				LCD::g_mode = lastMode;
 			}
 		default:
@@ -125,7 +126,7 @@ void LCD::LcdTask(void *param)
 
 void DisplayMessage(int delay, const char *messageString)
 {
-	mutexTake(LCD::g_mutex);
+	mutexTake(LCD::g_mutex, MAX_DELAY);
 
 	LCD::g_mode = LCD::Message;
 	LCD::g_message = messageString;
@@ -136,7 +137,7 @@ void DisplayMessage(int delay, const char *messageString)
 
 void LCD::SetLcdUpdateInterval(int val)
 {
-	mutexTake(LCD::g_mutex);
+	mutexTake(LCD::g_mutex, MAX_DELAY);
 	LCD::g_interval = val;
 	mutexGive(LCD::g_mutex);
 }
