@@ -27,6 +27,9 @@
 
 #include <API.h>
 
+// include important files
+#include "portSetup.h"
+
 // Allow usage of this file in C++ programs
 #ifdef __cplusplus
 extern "C" {

@@ -41,4 +41,7 @@ void initializeIO() {
  * can be implemented in this task if desired.
  */
 void initialize() {
+
+	pidEncoder = encoderInit(QUAD_TOP_PORT, QUAD_BOTTOM_PORT, false);
+
 }
