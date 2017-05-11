@@ -11,6 +11,8 @@
  */
 
 #include "main.h"
+#include "pid.h"
+#include "lcdmenu.h"
 
 /*
  * Runs the user operator control code. This function will be started in its own task with the
@@ -30,7 +32,24 @@
  * This task should never exit; it should end with some kind of infinite loop, even if empty.
  */
 void operatorControl() {
+	// send the motor off somewhere
+	//pidRequestedValue = 1000;
+
+	// start the PID task
+	taskCreate(pidTask, TASK_DEFAULT_STACK_SIZE, NULL, TASK_PRIORITY_DEFAULT);
+
+	// start the menu task
+	taskCreate(LCD::LcdTask, TASK_DEFAULT_STACK_SIZE, NULL, TASK_PRIORITY_DEFAULT);
+
+	// use joystick to modify the requested position
 	while (true) {
-		delay(20);
+	  // maximum change for pidRequestedValue will be 127/4*20, around 640 counts
+	  // per second
+	  // free spinning motor is 100rmp so 1.67 rotations per second
+	  // 1.67 * 360 counts is 600
+
+	  pidRequestedValue = pidRequestedValue + (joystickGetAnalog(1, 2) / 4);
+
+	  delay(50);
 	}
 }

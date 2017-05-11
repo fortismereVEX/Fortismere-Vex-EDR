@@ -124,6 +124,9 @@ void LCD::LcdTask(void *param)
 	}
 }
 
+Semaphore LCD::__WaitSemaphore;
+int LCD::__WaitValue;
+
 void DisplayMessage(int delay, const char *messageString)
 {
 	mutexTake(LCD::g_mutex, MAX_DELAY);

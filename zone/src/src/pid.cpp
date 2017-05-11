@@ -7,7 +7,7 @@ float pid_Ki = 0.04;
 float pid_Kd = 0.1;
 
 static int pidRunning = 1;
-static float pidRequestedValue;
+float pidRequestedValue;
 
 void pidTask(void *param)
 {

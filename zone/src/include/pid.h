@@ -14,4 +14,6 @@
 
 #define PID_INTEGRAL_LIMIT 50
 
+extern float pidRequestedValue;
+
 void pidTask(void *param);

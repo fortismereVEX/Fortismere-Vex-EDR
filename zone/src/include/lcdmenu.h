@@ -81,8 +81,8 @@ namespace LCD
 	// since we dont have a std::function there is no easy way to pass around stateful llambda functions
 	// TODO: maybe this will be better done with a struct functor?
 	//       or maybe this is an inherent design flaw...
-	Semaphore __WaitSemaphore;
-	int __WaitValue;
+	extern Semaphore __WaitSemaphore;
+	extern int __WaitValue;
 
 	template<typename T>
 	void __WaitCallback(T val)
