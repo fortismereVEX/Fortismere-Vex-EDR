@@ -4,4 +4,5 @@ Add something if it needs to be done, remove it if you have done it
 - Explain Discord (How we chat and where we steal our ideas from)
 - Explain Github
 - Explain Code IDE (The one Josh is using for C++)
+- Explain the PID thing we worked on
 - Look at game strats 
