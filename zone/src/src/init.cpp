@@ -11,6 +11,7 @@
  */
 
 #include "main.h"
+#include "lcdmenu.h"
 
 /*
  * Runs pre-initialization code. This function will be started in kernel mode one time while the
@@ -21,10 +22,6 @@
  * configure a UART port (usartOpen()) but cannot set up an LCD (lcdInit()).
  */
 void initializeIO() {
-	// initialise the lcd
-	lcdInit(uart1);
-	lcdClear(uart1);
-	lcdSetBacklight(uart1, true);
 }
 
 /*
@@ -42,6 +39,34 @@ void initializeIO() {
  */
 void initialize() {
 
+	// initialise the lcd
+	lcdInit(uart1);
+	lcdClear(uart1);
+	lcdSetBacklight(uart1, true);
+
+	
 	pidEncoder = encoderInit(QUAD_TOP_PORT, QUAD_BOTTOM_PORT, false);
+
+	// start the menu task
+	taskCreate(LCD::LcdTask, TASK_DEFAULT_STACK_SIZE, NULL, TASK_PRIORITY_DEFAULT);
+
+	// TODO: remove
+	enum class testOptions
+	{
+		test1,
+		test2,
+		test3,
+		test4,
+	};
+
+	const char *testOptionsStrings[] =
+	{
+		"test1",
+		"test2",
+		"test3",
+		"test4",
+	};
+
+	LCD::DisplayEnumOptions<testOptions>(testOptions::test4, testOptionsStrings, [](testOptions val){LCD::DisplayMessage(1000, "val recieved!");});
 
 }

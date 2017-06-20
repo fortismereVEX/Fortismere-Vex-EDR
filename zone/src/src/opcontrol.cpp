@@ -36,10 +36,7 @@ void operatorControl() {
 	//pidRequestedValue = 1000;
 
 	// start the PID task
-	taskCreate(pidTask, TASK_DEFAULT_STACK_SIZE, NULL, TASK_PRIORITY_DEFAULT);
-
-	// start the menu task
-	taskCreate(LCD::LcdTask, TASK_DEFAULT_STACK_SIZE, NULL, TASK_PRIORITY_DEFAULT);
+	//taskCreate(pidTask, TASK_DEFAULT_STACK_SIZE, NULL, TASK_PRIORITY_DEFAULT);
 
 	// use joystick to modify the requested position
 	while (true) {
@@ -47,6 +44,9 @@ void operatorControl() {
 	  // per second
 	  // free spinning motor is 100rmp so 1.67 rotations per second
 	  // 1.67 * 360 counts is 600
+
+	  motorSet(PID_MOTOR_INDEX, 255);
+
 
 	  pidRequestedValue = pidRequestedValue + (joystickGetAnalog(1, 2) / 4);
 
