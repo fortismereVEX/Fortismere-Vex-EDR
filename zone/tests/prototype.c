@@ -14,7 +14,7 @@ task main()
 {
     while (true) {
     	//Drive
-		int l = (vexRT[Ch3] + vexRT[Ch1]);
+			int l = (vexRT[Ch3] + vexRT[Ch1]);
         int r = (vexRT[Ch3] - vexRT[Ch1]);
         //Left
         motor[DL1] = l;
