@@ -36,7 +36,7 @@ void operatorControl() {
 	//pidRequestedValue = 1000;
 
 	// start the PID task
-	//taskCreate(pidTask, TASK_DEFAULT_STACK_SIZE, NULL, TASK_PRIORITY_DEFAULT);
+	taskCreate(pidTask, TASK_DEFAULT_STACK_SIZE, NULL, TASK_PRIORITY_DEFAULT);
 
 	// use joystick to modify the requested position
 	while (true) {

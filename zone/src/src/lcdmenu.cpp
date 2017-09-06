@@ -14,8 +14,7 @@ int LCD::g_interval;
 int LCD::g_messageWait;
 
 const char **LCD::g_strings;
-
-extern const char *LCD::g_message;
+const char *LCD::g_message;
 
 int LCD::g_max;
 
@@ -29,6 +28,11 @@ void LCD::LcdTask(void *param)
 	int buttonsPressed = 0;
 
 	LCD::LCDMode lastMode = LCD::Wait;
+
+	if(g_mutex == NULL)
+	{
+		g_mutex = mutexCreate();
+	}
 
 	while(true)
 	{
@@ -114,7 +118,6 @@ void LCD::LcdTask(void *param)
 
 		// update the last mode (this is important for the message mode)
 		lastMode = LCD::g_mode;
-
 
 		// release mutex
 		mutexGive(LCD::g_mutex);

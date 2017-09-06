@@ -44,29 +44,13 @@ void initialize() {
 	lcdClear(uart1);
 	lcdSetBacklight(uart1, true);
 
-	
+
 	pidEncoder = encoderInit(QUAD_TOP_PORT, QUAD_BOTTOM_PORT, false);
 
 	// start the menu task
-	taskCreate(LCD::LcdTask, TASK_DEFAULT_STACK_SIZE, NULL, TASK_PRIORITY_DEFAULT);
-
-	// TODO: remove
-	enum class testOptions
+	void *handle = taskCreate(&LCD::LcdTask, TASK_DEFAULT_STACK_SIZE, NULL, TASK_PRIORITY_DEFAULT);
+	if(handle == NULL)
 	{
-		test1,
-		test2,
-		test3,
-		test4,
-	};
-
-	const char *testOptionsStrings[] =
-	{
-		"test1",
-		"test2",
-		"test3",
-		"test4",
-	};
-
-	LCD::DisplayEnumOptions<testOptions>(testOptions::test4, testOptionsStrings, [](testOptions val){LCD::DisplayMessage(1000, "val recieved!");});
-
+		printf("!!! task handle is nullptr !!!\n\n");
+	}
 }

@@ -34,7 +34,7 @@ int g_interval;
 int g_messageWait;
 
 // "translations" for enum types
-char **g_strings = NULL;
+string *g_strings = NULL;
 
 // message string data
 char *g_message = NULL;
@@ -110,7 +110,7 @@ void Lcd_Task(void *param)
 
 					string valueString;
 					string newValue =  g_strings[abs(currentValue)];
-					sprintf(valueString, "%s %d", &g_strings[0][abs(currentValue)], currentValue);
+					sprintf(valueString, "%s %d", g_strings[abs(currentValue)], currentValue);
 
 					// it is important to use abs because the currentValue could be negative!
 					displayLCDString(0, 0, valueString);
@@ -119,8 +119,9 @@ void Lcd_Task(void *param)
 					// update our state and the last state to the waiting state
 					g_mode = lastMode = LCD_Wait;
 
+					typedef void(*enum_function_t)(int);
 					// call the callback with the selected value
-					((void(*)(int))g_callback)(abs(currentValue));
+					((enum_function_t)g_callback)(abs(currentValue));
 
 					continue;
 				}

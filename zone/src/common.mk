@@ -42,6 +42,6 @@ LDFLAGS:=-Wall $(MCUCFLAGS) $(MCULFLAGS) -Wl,--gc-sections
 # Tools used in program
 AR:=$(MCUPREFIX)ar
 AS:=$(MCUPREFIX)as
-CC:=$(MCUPREFIX)gcc
+CC:=$(MCUPREFIX)g++
 CPPCC:=$(MCUPREFIX)g++
 OBJCOPY:=$(MCUPREFIX)objcopy
