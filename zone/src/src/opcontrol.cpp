@@ -34,10 +34,7 @@
 void operatorControl() {
 	// send the motor off somewhere
 	//pidRequestedValue = 1000;
-
-	// start the PID task
-	taskCreate(pidTask, TASK_DEFAULT_STACK_SIZE, NULL, TASK_PRIORITY_DEFAULT);
-
+	//EncoderRight->requestedValue = 50;
 	// use joystick to modify the requested position
 	while (true) {
 	  // maximum change for pidRequestedValue will be 127/4*20, around 640 counts
@@ -45,10 +42,8 @@ void operatorControl() {
 	  // free spinning motor is 100rmp so 1.67 rotations per second
 	  // 1.67 * 360 counts is 600
 
-	  motorSet(PID_MOTOR_INDEX, 255);
-
-
-	  pidRequestedValue = pidRequestedValue + (joystickGetAnalog(1, 2) / 4);
+	  EncoderRight->requestedValue = (joystickGetAnalog(1, 2) / 4);
+	  EncoderLeft->requestedValue = (joystickGetAnalog(1, 2) / 4);
 
 	  delay(50);
 	}

@@ -1,11 +1,8 @@
 #pragma once
 
-#include <API.h>
+#include "motorConfig.h"
 
-// Digital port number for top and bottom port of quad encoder
-#define QUAD_TOP_PORT 1
-#define QUAD_BOTTOM_PORT 2
+struct EncoderSetup;
 
-#define MOTOR1 1
-
-extern Encoder pidEncoder;
+extern EncoderSetup *EncoderRight;
+extern EncoderSetup *EncoderLeft;
