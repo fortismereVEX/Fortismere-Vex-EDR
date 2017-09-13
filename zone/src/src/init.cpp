@@ -56,7 +56,7 @@ void initialize() {
 	EncoderLeft->motors[1] = Motors::DriveLeft2;
 
 	EncoderLeft->requestedValue = 0.0f;
-	EncoderLeft->constant_p = 2.0;
+	EncoderLeft->constant_p = 1.0;
 	EncoderLeft->constant_i = 0.04;
 	EncoderLeft->constant_d = 0.1;
 
@@ -66,12 +66,12 @@ void initialize() {
 	EncoderRight->motors[1] = Motors::DriveRight2;
 
 	EncoderRight->requestedValue = 0.0f;
-	EncoderRight->constant_p = 2.0;
+	EncoderRight->constant_p = 1.0;
 	EncoderRight->constant_i = 0.04;
 	EncoderRight->constant_d = 0.1;
 
 	taskCreate(&pidTask, TASK_DEFAULT_STACK_SIZE, EncoderRight, TASK_PRIORITY_DEFAULT);
-	taskCreate(&pidTask, TASK_DEFAULT_STACK_SIZE, EncoderLeft, TASK_PRIORITY_DEFAULT);
+	//taskCreate(&pidTask, TASK_DEFAULT_STACK_SIZE, EncoderLeft, TASK_PRIORITY_DEFAULT);
 
 	// start the menu task
 	taskCreate(&LCD::LcdTask, TASK_DEFAULT_STACK_SIZE, NULL, TASK_PRIORITY_DEFAULT);

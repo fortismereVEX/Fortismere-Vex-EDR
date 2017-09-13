@@ -33,6 +33,6 @@ inline EncoderSetup *AllocateEncoderSetup(int motorCount)
 #define PID_DRIVE_MAX 127
 #define PID_DRIVE_MIN (-127)
 
-#define PID_INTEGRAL_LIMIT 50
+#define PID_INTEGRAL_LIMIT 100
 
 void pidTask(void *param);
