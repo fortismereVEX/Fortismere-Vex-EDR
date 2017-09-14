@@ -30,9 +30,9 @@ void OptionsCallback(Options chosen)
 
 void operatorControl() {
 
-	LCD::SetLcdUpdateInterval(5);
+	//LCD::SetLcdUpdateInterval(5);
 
-	LCD::DisplayEnumOptions<Options>(Options::Pid, OptionsStrings, &OptionsCallback);
+	//LCD::DisplayEnumOptions<Options>(Options::Pid, OptionsStrings, &OptionsCallback);
 
 	while (true) {
 		// maximum change for pidRequestedValue will be 127/4*20, around 640 counts
