@@ -2,6 +2,8 @@
 
 #include "main.h"
 
+#include "util.h"
+
 #define MAX_DELAY (0xFFFFFFFF)
 
 // this file defines a common interface to display options on the lcd display
@@ -9,6 +11,8 @@
 // THE CODE IS CURRENTLY CONFIGURED TO USE UART1 AS THE DISPLAY PORT
 // IF THIS IS CHANGED THEN CHANGE IT IN THE CODE!
 // YOU *MUST* ALSO CHANGE THE CODE IN INIT.CPP
+
+#define LCD_PORT (uart2)
 
 namespace LCD
 {
@@ -25,14 +29,14 @@ namespace LCD
 	// state access mutex - important for syncronisation
 	extern Mutex g_mutex;
 
-	// current lcd mode
-	extern LCDMode g_mode;
+	extern Stack<LCDMode> g_modeStack;
 
 	// realtime update value
-	extern void *g_value;
-
-	// update interval
-	extern int g_interval;
+	extern float *g_rtvalue;
+	extern float g_rtinterval;
+	extern bool g_rthasminmax;
+	extern float g_rtmax;
+	extern float g_rtmin;
 
 	extern int g_messageWait;
 
@@ -62,10 +66,15 @@ namespace LCD
 	template<typename Enum>
 	void DisplayEnumOptions(Enum max, const char **strings, void(*callback)(Enum val))
 	{
+		if(LCD::g_mutex == nullptr)
+		{
+			LCD::g_mutex = mutexCreate();
+		}
+
 		mutexTake(LCD::g_mutex, MAX_DELAY);
 
 		// update state
-		LCD::g_mode = LCD::Enum;
+		LCD::g_modeStack.push(LCD::Enum);
 		LCD::g_strings = strings;
 		LCD::g_max = (int)max;
 		LCD::g_callback = (void *)callback;
@@ -92,6 +101,7 @@ namespace LCD
 		{
 			// we were not able to give the semaphore back (wtf)
 			// do nothing here for now...
+			printf("UNABLE TO GIVE SEMAPHORE BACK\n\n\n\nFATAL ERROR!!!!!!\n\n\n\n");
 		}
 
 		return;

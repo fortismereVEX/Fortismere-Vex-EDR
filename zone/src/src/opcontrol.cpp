@@ -2,11 +2,38 @@
 #include "pid.h"
 #include "lcdmenu.h"
 
+#include "stdlib.h"
+#include "string.h"
+
+enum class Options
+{
+	Voltage,
+	Pid,
+	Last,
+};
+const char *OptionsStrings[] =
+{
+	"Voltage",
+	"Pid",
+};
+
+void OptionsCallback(Options chosen)
+{
+	if(chosen == Options::Voltage)
+	{
+		char buffer[255];
+		memset(buffer, 0, sizeof(buffer));
+		snprintf(buffer, 16, "M: %.2f B: %.2f", (float)powerLevelMain() / 1000.0f, (float)powerLevelBackup() / 1000.0f);
+		LCD::DisplayMessage(2000, buffer);
+	}
+}
+
 void operatorControl() {
-	// send the motor off somewhere
-	//pidRequestedValue = 1000;
-	//EncoderRight->requestedValue = 50;
-	// use joystick to modify the requested position
+
+	LCD::SetLcdUpdateInterval(5);
+
+	LCD::DisplayEnumOptions<Options>(Options::Pid, OptionsStrings, &OptionsCallback);
+
 	while (true) {
 		// maximum change for pidRequestedValue will be 127/4*20, around 640 counts
 		// per second
@@ -71,7 +98,8 @@ void operatorControl() {
 		{
 			motorSet(ClawLeft, 0);
 			motorSet(ClawRight, 0);
-
 		}
+
+		delay(1);
 	}
 }

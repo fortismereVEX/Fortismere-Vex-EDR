@@ -28,27 +28,10 @@ EncoderSetup *EncoderLeft;
  * configure a UART port (usartOpen()) but cannot set up an LCD (lcdInit()).
  */
 void initializeIO() {
+
 }
 
-/*
- * Runs user initialization code. This function will be started in its own task with the default
- * priority and stack size once when the robot is starting up. It is possible that the VEXnet
- * communication link may not be fully established at this time, so reading from the VEX
- * Joystick may fail.
- *
- * This function should initialize most sensors (gyro, encoders, ultrasonics), LCDs, global
- * variables, and IMEs.
- *
- * This function must exit relatively promptly, or the operatorControl() and autonomous() tasks
- * will not start. An autonomous mode selection menu like the pre_auton() in other environments
- * can be implemented in this task if desired.
- */
 void initialize() {
-
-	// initialise the lcd
-	lcdInit(uart1);
-	lcdClear(uart1);
-	lcdSetBacklight(uart1, true);
 
 	EncoderLeft = AllocateEncoderSetup(2);
 	EncoderLeft->encoder = encoderInit(Sensors::LeftQuadTop, Sensors::LeftQuadBot, false);
@@ -74,5 +57,6 @@ void initialize() {
 	//taskCreate(&pidTask, TASK_DEFAULT_STACK_SIZE, EncoderLeft, TASK_PRIORITY_DEFAULT);
 
 	// start the menu task
-	taskCreate(&LCD::LcdTask, TASK_DEFAULT_STACK_SIZE, NULL, TASK_PRIORITY_DEFAULT);
+	//taskCreate(&LCD::LcdTask, TASK_DEFAULT_STACK_SIZE, NULL, TASK_PRIORITY_DEFAULT);
+
 }
