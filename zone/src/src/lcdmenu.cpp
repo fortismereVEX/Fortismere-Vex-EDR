@@ -28,38 +28,41 @@ namespace LCD
 
 	bool g_stateChanged;
 
-	Stack<LCDMode> g_modeStack;
+	Stack<LCDMode> *g_modeStack;
 
 	void LcdTask(void *param)
 	{
+		lcdInit(LCD_PORT);
+		lcdClear(LCD_PORT);
+		lcdSetBacklight(LCD_PORT, true);
+
 		int currentValue = 0;
 		int buttonsPressed = 0;
 		g_stateChanged = false;
 
+		//printf("\nCreating stack\n");
+
+	 	Stack<LCDMode> __modestack;
+		g_modeStack = &__modestack;
+
+		//printf("\nPushing wait\n");
+
 		// initialise a default mode
-		printf("PUSH TO STACK\n");
-		printf("PUSH TO STACK\n");
-		printf("PUSH TO STACK\n");
-		printf("PUSH TO STACK\n");
-		printf("PUSH TO STACK\n");
-		printf("PUSH TO STACK\n");
-		g_modeStack.push(LCDMode::Wait);
+		__modestack.push(LCDMode::Wait);
 
 		if(g_mutex == NULL)
 		{
 			g_mutex = mutexCreate();
 		}
 
-		lcdInit(LCD_PORT);
-		lcdClear(LCD_PORT);
-		lcdSetBacklight(LCD_PORT, true);
+		Log::Print("\n\n\n\nLCD COMPLETE\n\n\n\n");
 
 		while(true)
 		{
 			// take mutex once per loop (wait forever)
 			mutexTake(g_mutex, MAX_DELAY);
 
-			switch(g_modeStack.top())
+			switch(g_modeStack->top())
 			{
 			case Wait:
 				// dont do anything in a waiting state
@@ -78,7 +81,7 @@ namespace LCD
 						g_stateChanged = false;
 					}
 
-					//printf("max: %d currentValue %d strings: '%s'\n", g_max + 1, currentValue, g_strings[abs(currentValue)]);
+					printf("max: %d currentValue %d strings: '%s'\n", g_max + 1, currentValue, g_strings[abs(currentValue)]);
 					lcdPrint(LCD_PORT, 1, "%s %d", g_strings[abs(currentValue)], currentValue);
 
 
@@ -114,7 +117,7 @@ namespace LCD
 						lcdPrint(LCD_PORT, 2, "selected");
 
 						// update our state and the last state to the waiting state
-						g_modeStack.pop();
+						g_modeStack->pop();
 
 						// release the mutex before calling
 						// to prevent deadlock with functions that wish to display messages in their callbacks
@@ -137,7 +140,7 @@ namespace LCD
 				{
 					if(g_message == nullptr)
 					{
-						g_modeStack.pop();
+						g_modeStack->pop();
 						break;
 					}
 
@@ -149,7 +152,7 @@ namespace LCD
 					delay(g_messageWait);
 					g_message = NULL;
 
-					g_modeStack.pop();
+					g_modeStack->pop();
 
 					break;
 				}
@@ -157,7 +160,7 @@ namespace LCD
 				{
 					if(g_rtvalue == nullptr)
 					{
-						g_modeStack.pop();
+						g_modeStack->pop();
 						break;
 					}
 
@@ -186,7 +189,7 @@ namespace LCD
 					else if(buttonsPressed == 2) // center
 					{
 						// we are now finished
-						g_modeStack.pop();
+						g_modeStack->pop();
 						break;
 					}
 
@@ -213,9 +216,9 @@ namespace LCD
 	{
 		mutexTake(g_mutex, MAX_DELAY);
 
-		printf("DISPLAY MESSAGE\n");
+		Log::Print("DISPLAY MESSAGE\n");
 
-		g_modeStack.push(LCDMode::Message);
+		g_modeStack->push(LCDMode::Message);
 		g_message = messageString;
 		g_messageWait = delay;
 

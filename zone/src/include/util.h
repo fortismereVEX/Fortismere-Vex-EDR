@@ -4,6 +4,20 @@
 
 // commonly used functions can be defined here
 
+namespace Log
+{
+	inline void Print(const char *text)
+	{
+		//static Mutex mu = mutexCreate();
+
+		//mutexTake(mu, -1);
+		//delay(1000);
+		printf(text);
+		//delay(1000);
+		//mutexGive(mu);
+	}
+};
+
 template<typename T>
 inline T clamp(T x, T min, T max)
 {
@@ -29,39 +43,31 @@ inline T Min(T x, T y)
 
 #define STACK_SIZE_CHECK
 
-template<typename T, unsigned size = 32>
+template<class T, unsigned size = 10U>
 class Stack
 {
-	T data[size];
-
-	T *pTop;
+    T data[size];
+    T *top_ptr;
 
 public:
-	Stack()
-	{
-		pTop = data;
-	}
+    Stack()
+    {
+        top_ptr = data;
+    }
 
-	// temporary DO NOT HOLD AROUND
-	T &pop()
-	{
-		T &ret = *(pTop--);
-		return ret;
-	}
+    T &top()
+    {
+        return *top_ptr;
+    }
 
-	void push(T val)
-	{
-		#ifdef STACK_SIZE_CHECK
-		if((unsigned long long)pTop - (unsigned long long)data >= size)
-		{
-			printf("STACK DATA OVERFLOW\n");
-		}
-		#endif
-		*(++pTop) = val;
-	}
+    T &pop()
+    {
+        return *(top_ptr--);
+    }
 
-	T &top()
-	{
-		return *pTop;
-	}
+    void push(T elem)
+    {
+        *(++top_ptr) = elem;
+        return;
+    }
 };

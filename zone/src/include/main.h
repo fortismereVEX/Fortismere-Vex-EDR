@@ -97,6 +97,8 @@ void initialize();
  */
 void operatorControl();
 
+extern bool g_Ready;
+
 // End C++ export structure
 #ifdef __cplusplus
 }

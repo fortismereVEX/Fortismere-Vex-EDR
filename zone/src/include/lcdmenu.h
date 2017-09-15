@@ -29,7 +29,7 @@ namespace LCD
 	// state access mutex - important for syncronisation
 	extern Mutex g_mutex;
 
-	extern Stack<LCDMode> g_modeStack;
+	extern Stack<LCDMode> *g_modeStack;
 
 	// realtime update value
 	extern float *g_rtvalue;
@@ -66,6 +66,8 @@ namespace LCD
 	template<typename Enum>
 	void DisplayEnumOptions(Enum max, const char **strings, void(*callback)(Enum val))
 	{
+		Log::Print("DisplayEnumOptions\n");
+
 		if(LCD::g_mutex == nullptr)
 		{
 			LCD::g_mutex = mutexCreate();
@@ -74,7 +76,7 @@ namespace LCD
 		mutexTake(LCD::g_mutex, MAX_DELAY);
 
 		// update state
-		LCD::g_modeStack.push(LCD::Enum);
+		LCD::g_modeStack->push(LCD::Enum);
 		LCD::g_strings = strings;
 		LCD::g_max = (int)max;
 		LCD::g_callback = (void *)callback;
@@ -83,6 +85,8 @@ namespace LCD
 		g_stateChanged = true;
 
 		mutexGive(g_mutex);
+
+		printf("modeStack->top() == %d", g_modeStack->top());
 	}
 
 

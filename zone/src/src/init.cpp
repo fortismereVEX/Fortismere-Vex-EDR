@@ -19,6 +19,11 @@
 EncoderSetup *EncoderRight;
 EncoderSetup *EncoderLeft;
 
+extern "C" {
+  void __libc_init_array();
+}
+
+
 /*
  * Runs pre-initialization code. This function will be started in kernel mode one time while the
  * VEX Cortex is starting up. As the scheduler is still paused, most API functions will fail.
@@ -27,11 +32,17 @@ EncoderSetup *EncoderLeft;
  * states (digitalWrite()) of limit switches, push buttons, and solenoids. It can also safely
  * configure a UART port (usartOpen()) but cannot set up an LCD (lcdInit()).
  */
-void initializeIO() {
 
+ bool g_Ready;
+
+
+void initializeIO() {
+	g_Ready = false;
 }
 
+
 void initialize() {
+	__libc_init_array();
 
 	EncoderLeft = AllocateEncoderSetup(2);
 	EncoderLeft->encoder = encoderInit(Sensors::LeftQuadTop, Sensors::LeftQuadBot, false);
@@ -56,7 +67,13 @@ void initialize() {
 	taskCreate(&pidTask, TASK_DEFAULT_STACK_SIZE, EncoderRight, TASK_PRIORITY_DEFAULT);
 	//taskCreate(&pidTask, TASK_DEFAULT_STACK_SIZE, EncoderLeft, TASK_PRIORITY_DEFAULT);
 
+	//delay(5000);
+
+	Log::Print("Initialisation complete\n");
+
 	// start the menu task
-	//taskCreate(&LCD::LcdTask, TASK_DEFAULT_STACK_SIZE, NULL, TASK_PRIORITY_DEFAULT);
+	taskCreate(&LCD::LcdTask, TASK_DEFAULT_STACK_SIZE, NULL, TASK_PRIORITY_DEFAULT);
+
+	g_Ready = true;
 
 }
