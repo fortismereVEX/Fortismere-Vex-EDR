@@ -26,7 +26,7 @@ UPLOAD=@java -jar firmware/uniflash.jar vex $(BINDIR)/$(OUTBIN)
 ASMEXT=s
 CEXT=c
 CPPEXT=cpp
-HEXT=hpp
+HEXT=h
 INCLUDE=-I$(ROOT)/include -I$(ROOT)/src
 OUTBIN=output.bin
 OUTNAME=output.elf
@@ -34,14 +34,14 @@ OUTNAME=output.elf
 # Flags for programs
 AFLAGS:=$(MCUAFLAGS)
 ARFLAGS:=$(MCUCFLAGS)
-CCFLAGS:=-c -Wall $(MCUCFLAGS) -Os -ffunction-sections -fsigned-char -fomit-frame-pointer -fsingle-precision-constant -std=c++11
+CCFLAGS:=-c -Wall $(MCUCFLAGS) -Os -ffunction-sections -fsigned-char -fomit-frame-pointer -fsingle-precision-constant
 CFLAGS:=$(CCFLAGS) -std=gnu99 -Werror=implicit-function-declaration
-CPPFLAGS:=$(CCFLAGS) -fno-exceptions -fno-rtti -felide-constructors
+CPPFLAGS:=$(CCFLAGS) -fno-exceptions -fno-rtti -felide-constructors -std=c++11
 LDFLAGS:=-Wall $(MCUCFLAGS) $(MCULFLAGS) -Wl,--gc-sections
 
 # Tools used in program
 AR:=$(MCUPREFIX)ar
 AS:=$(MCUPREFIX)as
-CC:=$(MCUPREFIX)gcc
+CC:=$(MCUPREFIX)g++
 CPPCC:=$(MCUPREFIX)g++
 OBJCOPY:=$(MCUPREFIX)objcopy

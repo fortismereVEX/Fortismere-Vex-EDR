@@ -1,6 +1,6 @@
 #include "../include/pid.h"
 
-static int pidRunning = 0;
+static int pidRunning = 1;
 
 void pidTask(void *param)
 {
@@ -23,7 +23,7 @@ void pidTask(void *param)
     pidLastError = 0;
     pidIntegral = 0;
 
-	printf("0x%X kp %f ki %f kd %f\n", setup->encoder, setup->constant_p, setup->constant_i, setup->constant_d);
+	//printf("0x%X kp %f ki %f kd %f\n", setup->encoder, setup->constant_p, setup->constant_i, setup->constant_d);
 
     while (true) {
 		float pid_Kp = setup->constant_p;
@@ -33,9 +33,9 @@ void pidTask(void *param)
 		// Is PID control active ?z
 		if (pidRunning) {
 			// Read the sensor value and scale
-			pidSensorCurrentValue += encoderGet(setup->encoder) * PID_SENSOR_SCALE;
+			pidSensorCurrentValue = encoderGet(setup->encoder) * PID_SENSOR_SCALE;
 
-			//printf("Encoder 0x%X v: %+.6f r: %+.6f p: %+.6f i: %+.6f d: %+.6f\n", setup->encoder, pidSensorCurrentValue, setup->requestedValue, pidError, pidIntegral, pidDerivative);
+			printf("Encoder 0x%X v: %+.6f r: %+.6f p: %+.6f i: %+.6f d: %+.6f\n", setup->encoder, pidSensorCurrentValue, setup->requestedValue, pidError, pidIntegral, pidDerivative);
 
 			// calculate error
 			pidError = pidSensorCurrentValue - setup->requestedValue;

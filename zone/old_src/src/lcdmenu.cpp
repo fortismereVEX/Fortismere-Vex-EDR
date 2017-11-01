@@ -32,6 +32,7 @@ namespace LCD
 
 	void LcdTask(void *param)
 	{
+		delay(1000);
 		lcdInit(LCD_PORT);
 		lcdClear(LCD_PORT);
 		lcdSetBacklight(LCD_PORT, true);
@@ -42,6 +43,7 @@ namespace LCD
 
 		//printf("\nCreating stack\n");
 
+		// we create the stack here as i cant make .inits work
 	 	Stack<LCDMode> __modestack;
 		g_modeStack = &__modestack;
 
@@ -95,9 +97,9 @@ namespace LCD
 					if(buttonsPressed == 4) // right
 					{
 						// increment value
-						//printf("INCREMENT\n");
+						printf("INCREMENT\n");
 						currentValue = Min(currentValue + 1, g_max);
-						//printf("NEW VALUE: %d\n", currentValue);
+						printf("NEW VALUE: %d\n", currentValue);
 					}
 					else if(buttonsPressed == 1) // left
 					{
@@ -105,7 +107,7 @@ namespace LCD
 
 						// let the current value become negative (correcting it just results in more problems)
 						// when accessing strings you need to get the abs() of the value
-						//printf("DECREMENT\n");
+						printf("DECREMENT\n");
 						currentValue = Max(currentValue - 1, 0);
 					}
 					else if(buttonsPressed == 2) // center

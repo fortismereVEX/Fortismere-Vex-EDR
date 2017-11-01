@@ -12,7 +12,7 @@
 // IF THIS IS CHANGED THEN CHANGE IT IN THE CODE!
 // YOU *MUST* ALSO CHANGE THE CODE IN INIT.CPP
 
-#define LCD_PORT (uart2)
+#define LCD_PORT uart2
 
 namespace LCD
 {
@@ -86,7 +86,7 @@ namespace LCD
 
 		mutexGive(g_mutex);
 
-		printf("modeStack->top() == %d", g_modeStack->top());
+		printf("modeStack->top() == %d\n", g_modeStack->top());
 	}
 
 

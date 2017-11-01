@@ -20,7 +20,7 @@ enum Sensors
 	LeftQuadBot,
 	RightQuadTop,
 	RightQuadBot,
-	ClawPotent,
-	LeftLineTrack,
-	RightLineTrack,
+	ClawPotent = 1, // analogue sensor
+	LeftLineTrack = 5,
+	RightLineTrack = 6,
 };
