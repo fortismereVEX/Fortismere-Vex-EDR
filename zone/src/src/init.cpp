@@ -1,6 +1,7 @@
 #include "main.hpp"
 
 #include "lcd.hpp"
+#include "drive.hpp"
 
 extern "C"
 {
@@ -19,4 +20,5 @@ void initialize()
 	__libc_init_array();
 
 	lcd::initialize();
+	drive::initialize();
 }

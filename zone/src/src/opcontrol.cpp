@@ -1,6 +1,7 @@
 #include "main.hpp"
 
 #include "lcd.hpp"
+#include "drive.hpp"
 
 enum class enums
 {
@@ -25,19 +26,16 @@ void enums_callback(enums val)
 
 void operatorControl()
 {
-
-	lcd::displayOptions(enums::enums_max, enums_strings, enums_callback);
+	//lcd::displayOptions(enums::enums_max, enums_strings, enums_callback);
 
 	float val = 5.0f;
 	float min = 0.0f;
 	float max = 10.0f;
 
-	lcd::displayRealtime(&val, &min, &max);
-
 	while (true)
 	{
-		lcd::displayMessage("message wow");
-		delay(2000);
+		drive::run_frame();
 
+		delay(1);
 	}
 }
