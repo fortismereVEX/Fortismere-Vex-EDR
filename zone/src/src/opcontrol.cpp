@@ -21,7 +21,7 @@ char *enums_strings[] =
 
 void enums_callback(enums val)
 {
-	printf("value recieved: %s [%d]", enums_strings[(int)val], val);
+	printf("value recieved: %s [%d]\n", enums_strings[(int)val], val);
 }
 
 void operatorControl()

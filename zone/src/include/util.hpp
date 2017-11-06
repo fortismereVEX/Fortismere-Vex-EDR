@@ -1,7 +1,9 @@
+#pragma once
+
 #include "main.hpp"
 
 template<typename T>
-T min(T a, T b)
+inline T min(T a, T b)
 {
 	if(a < b)
 		return a;
@@ -9,11 +11,31 @@ T min(T a, T b)
 }
 
 template<typename T>
-T max(T a, T b)
+inline T max(T a, T b)
 {
 	if(a > b)
 		return a;
 	return b;
+}
+
+template<typename T>
+inline T abs(T val)
+{
+	if(val < 0)
+		return -val;
+
+	return val;
+}
+
+template<typename T>
+inline T clamp(T x, T min, T max)
+{
+	if(x < min)
+		return min;
+	if(x > max)
+		return max;
+
+	return x;
 }
 
 template<class T, unsigned size = 10U>
@@ -63,5 +85,34 @@ public:
 	void unlock()
 	{
 		mutexGive(m);
+	}
+};
+
+
+class encoder
+{
+	Encoder e;
+public:
+	encoder() = default;
+
+	void init(int top, int bot, bool reverse = false)
+	{
+		e = encoderInit(top, bot, reverse);
+		encoderReset(e);
+	}
+
+	~encoder()
+	{
+		encoderShutdown(e);
+	}
+
+	void reset()
+	{
+		encoderReset(e);
+	}
+
+	int get()
+	{
+		encoderGet(e);
 	}
 };

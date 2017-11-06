@@ -2,6 +2,7 @@
 
 stack<lcd::state> lcd::state_stack;
 char *lcd::message_string;
+bool lcd::message_allocated = false;
 mutex lcd::lcd_mutex;
 
 int lcd::option_value;

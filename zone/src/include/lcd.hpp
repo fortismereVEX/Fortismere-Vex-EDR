@@ -1,6 +1,9 @@
+#pragma once
 #include <main.hpp>
 
 #include "util.hpp"
+
+#include <stdarg.h>
 
 class lcd
 {
@@ -24,6 +27,7 @@ class lcd
 
 	static char *message_string;
 	static int message_delay;
+	static bool message_allocated;
 
 	static mutex lcd_mutex;
 
@@ -257,6 +261,23 @@ public:
 		lcd_mutex.lock();
 		state_stack.push(state::message);
 		message_string = message;
+		message_allocated = false;
+		lcd_mutex.unlock();
+	}
+
+	static void printf(const char *format, ...)
+	{
+		lcd_mutex.lock();
+		state_stack.push(state::message);
+		message_allocated = true;
+		message_string = (char *)malloc(15);
+
+		va_list vlist;
+		va_start(vlist, format);
+		extern int vsnprintf(char *out, size_t size, const char *fmt, va_list args);
+		vsnprintf(message_string, 15, format, vlist);
+		va_end(vlist);
+
 		lcd_mutex.unlock();
 	}
 
