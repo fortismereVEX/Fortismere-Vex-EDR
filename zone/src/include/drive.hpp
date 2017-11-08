@@ -110,8 +110,14 @@ class drive
 	static replay *rep;
 
 	// pid values
-	static encoder enc_left;
-	static encoder enc_right;
+	//static encoder enc_left;
+	//static encoder enc_right;
+
+	static ime ime_left;
+	static ime ime_right;
+
+	static char power_left;
+	static char power_right;
 
 	static float requested_left;
 	static float requested_right;
@@ -121,16 +127,30 @@ class drive
 	static float k_i;
 	static float k_d;
 
-	static float integral;
-	static float last_error;
+	static float integral_left;
+	static float integral_right;
+	static float last_error_left;
+	static float last_error_right;
 
+	static float get_rpm_value(char power)
+	{
+		return ((float)power / 127.0f) * 160.0f;
+	}
+
+	static char get_power_value(float rpm)
+	{
+		return (rpm / 160.0f) * 127;
+	}
 
 public:
 
 	static void initialize()
 	{
-		enc_left.init(2, 3);
-		enc_right.init(4, 5);
+		auto inited = imeInitializeAll();
+		lcd::printf("%d motors inited", inited);
+
+		ime_left.init(0);
+		ime_right.init(1);
 	}
 
 	static int get_joystick_analog(int axis)
@@ -174,17 +194,8 @@ public:
 		int fwd = get_joystick_analog(1);
 		int lr = get_joystick_analog(3);
 
-		int r = (fwd - lr);
-		int l = (fwd + lr);
-
-		// front left
-		motorSet(2, l);
-		// back left
-		motorSet(3, l);
-		// front right
-		motorSet(4, r);
-		// back right
-		motorSet(5, r);
+		power_right = (fwd - lr);
+		power_left = (fwd + lr);
 	}
 
 	static void run_intake()
@@ -213,35 +224,63 @@ public:
 
 	static void pid_frame()
 	{
-		float pid_value = enc_left.get();
-		float error = pid_value - requested_left;
+		float left_rpm = get_rpm_value(power_left);
+		float right_rpm = get_rpm_value(power_right);
+
+		float left_real_rpm = ime_left.get_value(nullptr);
+		float right_real_rpm = ime_right.get_value(nullptr);
+
+		float left_error = left_real_rpm - left_rpm;
+		float right_error = right_real_rpm - right_rpm;
 
 		if(k_i != 0.0f)
 		{
-			if(abs(error) < 50.0f)
+			if(abs(left_error) < 50.0f)
 			{
-				integral = integral + error;
+				integral_left = integral_left + left_error;
 			}
 			else
 			{
-				integral = 0.0f;
+				integral_left = 0.0f;
+			}
+
+			if(abs(right_error) < 50.0f)
+			{
+				integral_right = integral_right + right_error;
+			}
+			else
+			{
+				integral_right = 0.0f;
 			}
 		}
 		else
 		{
-			integral = 0.0f;
+			integral_right = 0.0f;
+			integral_left = 0.0f;
 		}
 
-		float derivative = error - last_error;
-		last_error = error;
+		float derivative_right = right_error - last_error_right;
+		float derivative_left = left_error - last_error_left;
+		last_error_right = right_error;
+		last_error_left = left_error;
 
-		float new_drive = (k_p * error) + (k_i * integral) + (k_p * derivative);
+		float new_drive_left = (k_p * left_error) + (k_i * integral_left) + (k_p * derivative_left);
+		float new_drive_right = (k_p * right_error) + (k_i * integral_right) + (k_p * derivative_right);
 
-		clamp(new_drive, -127.0f, 127.0f);
+		power_left = get_power_value(new_drive_left);
+		power_right = get_power_value(new_drive_right);
+	}
 
-		motorSet(2, new_drive);
-		motorSet(3, new_drive);
-
+	static void finalise()
+	{
+		// front left
+		motorSet(2, power_left);
+		// back left
+		motorSet(3, power_left);
+		// front right
+		motorSet(4, power_right);
+		// back right
+		motorSet(5, power_right);
 	}
 
 	static void run_frame()
@@ -251,5 +290,9 @@ public:
 		run_intake();
 
 		run_lift();
+
+		pid_frame();
+
+		finalise();
 	}
 };

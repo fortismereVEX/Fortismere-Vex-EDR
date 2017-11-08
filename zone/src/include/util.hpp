@@ -116,3 +116,32 @@ public:
 		encoderGet(e);
 	}
 };
+
+class ime
+{
+	char ime_address;
+public:
+
+	ime() = default;
+
+	void init(char address)
+	{
+		ime_address = address;
+		imeReset(ime_address);
+	}
+
+	float get_value(bool *success)
+	{
+		int value = 0;
+		bool result = imeGetVelocity(ime_address, &value);
+
+		if(success != nullptr)
+		{
+			*success = result;
+		}
+
+		return value * 24.5;
+	}
+
+
+};

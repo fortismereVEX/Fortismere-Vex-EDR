@@ -26,7 +26,7 @@ void enums_callback(enums val)
 
 void operatorControl()
 {
-	//lcd::displayOptions(enums::enums_max, enums_strings, enums_callback);
+	lcd::displayOptions(enums::enums_max, enums_strings, enums_callback);
 
 	float val = 5.0f;
 	float min = 0.0f;
