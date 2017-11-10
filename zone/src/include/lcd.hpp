@@ -60,7 +60,8 @@ public:
 			{
 				case wait:
 				{
-					lcdPrint(uart1, 1, "waiting...");
+					// implement a menu for this
+					lcdPrint(uart1, 2, "waiting...");
 					break;
 				}
 				case message:
@@ -72,6 +73,7 @@ public:
 				}
 				case options:
 				{
+					::printf("options\n");
 					option_value = 0;
 					// intentionally block here
 					while(true)
@@ -127,9 +129,9 @@ public:
 				case realtime:
 				{
 					// intentional block
+					::printf("realtime\n");
 					while(true)
 					{
-						printf("realtime loop\n");
 						int buttons = lcdReadButtons(uart1);
 
 						if(buttons == 4)
@@ -159,7 +161,8 @@ public:
 								}
 								case None:
 								{
-									lcdPrint(uart1, 1, "realtime_type is None");
+									lcdPrint(uart1, 1, "type is `None`");
+									lcdPrint(uart1, 2, "This is a bug.");
 									delay(1000);
 									break;
 								}

@@ -4,6 +4,8 @@
 
 #include "lcd.hpp"
 
+//#define DRIVE_DEBUG
+
 // TODO: recorder + replay should be the same class
 
 class recorder
@@ -143,11 +145,10 @@ class drive
 	}
 
 public:
-
 	static void initialize()
 	{
 		auto inited = imeInitializeAll();
-		lcd::printf("%d motors inited", inited);
+		lcd::printf("%d imes", inited);
 
 		ime_left.init(0);
 		ime_right.init(1);
@@ -230,12 +231,16 @@ public:
 		float left_real_rpm = ime_left.get_value(nullptr);
 		float right_real_rpm = ime_right.get_value(nullptr);
 
-		float left_error = left_real_rpm - left_rpm;
-		float right_error = right_real_rpm - right_rpm;
+		#if defined(DRIVE_DEBUG)
+		lcdPrint(uart1, 2, "w: %.1f a: %.1f", right_rpm, right_real_rpm);
+		#endif
+
+		float left_error = left_rpm - left_real_rpm;
+		float right_error = right_rpm - right_real_rpm;
 
 		if(k_i != 0.0f)
 		{
-			if(abs(left_error) < 50.0f)
+			if(abs(left_error) < 30.0f)
 			{
 				integral_left = integral_left + left_error;
 			}
@@ -244,7 +249,7 @@ public:
 				integral_left = 0.0f;
 			}
 
-			if(abs(right_error) < 50.0f)
+			if(abs(right_error) < 30.0f)
 			{
 				integral_right = integral_right + right_error;
 			}
@@ -273,6 +278,10 @@ public:
 
 	static void finalise()
 	{
+		#if defined(DRIVE_DEBUG)
+		lcdPrint(uart1, 1, "l: %d r: %d", power_left, power_right);
+		#endif
+
 		// front left
 		motorSet(2, power_left);
 		// back left

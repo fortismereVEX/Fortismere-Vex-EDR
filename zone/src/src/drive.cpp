@@ -15,9 +15,9 @@ ime drive::ime_right;
 char drive::power_left;
 char drive::power_right;
 
-float drive::k_p = 2.0f;
-float drive::k_i = 1.0f;
-float drive::k_d = 5.0f;
+float drive::k_p = 0.6f;
+float drive::k_i = 0.001f;
+float drive::k_d = 0.55f;
 
 float drive::integral_left = 0.0f;
 float drive::integral_right	 = 0.0f;

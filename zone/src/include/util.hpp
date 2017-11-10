@@ -140,7 +140,7 @@ public:
 			*success = result;
 		}
 
-		return value * 24.5;
+		return value / 24.5;
 	}
 
 
