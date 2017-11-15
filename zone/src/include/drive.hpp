@@ -4,7 +4,7 @@
 
 #include "lcd.hpp"
 
-//#define DRIVE_DEBUG
+#define DRIVE_DEBUG
 
 // TODO: recorder + replay should be the same class
 
@@ -115,6 +115,10 @@ class drive
 	//static encoder enc_left;
 	//static encoder enc_right;
 
+	static int last_time;
+
+	static bool pid_enabled;
+
 	static ime ime_left;
 	static ime ime_right;
 
@@ -136,12 +140,20 @@ class drive
 
 	static float get_rpm_value(char power)
 	{
-		return ((float)power / 127.0f) * 160.0f;
+		return ((float)power / 127.0f) * 800.0f;
 	}
 
 	static char get_power_value(float rpm)
 	{
-		return (rpm / 160.0f) * 127;
+		return (char)((rpm / 800.0f) * 127.0f);
+	}
+
+	static int get_delta_time()
+	{
+		int current_time = millis();
+		int dt = current_time - last_time;
+		last_time = current_time;
+		return dt;
 	}
 
 public:
@@ -225,71 +237,94 @@ public:
 
 	static void pid_frame()
 	{
-		float left_rpm = get_rpm_value(power_left);
-		float right_rpm = get_rpm_value(power_right);
-
-		float left_real_rpm = ime_left.get_value(nullptr);
-		float right_real_rpm = ime_right.get_value(nullptr);
-
-		#if defined(DRIVE_DEBUG)
-		lcdPrint(uart1, 2, "w: %.1f a: %.1f", right_rpm, right_real_rpm);
-		#endif
-
-		float left_error = left_rpm - left_real_rpm;
-		float right_error = right_rpm - right_real_rpm;
-
-		if(k_i != 0.0f)
+		if(get_joystick_digital(8, JOY_UP))
 		{
-			if(abs(left_error) < 30.0f)
-			{
-				integral_left = integral_left + left_error;
-			}
-			else
-			{
-				integral_left = 0.0f;
-			}
+			pid_enabled = true;
+		}
+		else if(get_joystick_digital(8, JOY_DOWN))
+		{
+			pid_enabled = false;
+		}
+		if(pid_enabled)
+		{
+			float left_rpm = get_rpm_value(power_left);
+			float right_rpm = get_rpm_value(power_right);
 
-			if(abs(right_error) < 30.0f)
+			float left_real_rpm = ime_left.get_value(nullptr);
+			float right_real_rpm = ime_right.get_value(nullptr);
+
+			#if defined(DRIVE_DEBUG)
+			lcdPrint(uart1, 2, "w: %.1f a: %.1f", right_rpm, right_real_rpm);
+			//printf("w: %.1f a: %.1f\n", right_rpm, right_real_rpm);
+			#endif
+
+			float left_error = left_rpm - left_real_rpm;
+			float right_error = right_rpm - right_real_rpm;
+
+			#if defined(DRIVE_DEBUG)
+			printf("l: %.1f r: %.1f\n", left_error, right_error);
+			#endif
+
+			if(k_i != 0.0f)
 			{
-				integral_right = integral_right + right_error;
+				int dt = get_delta_time();
+				if(abs(left_error) < 30.0f)
+				{
+					integral_left = integral_left + left_error * dt;
+				}
+				else
+				{
+					integral_left = 0.0f;
+				}
+
+				if(abs(right_error) < 30.0f)
+				{
+					integral_right = integral_right + right_error * dt;
+				}
+				else
+				{
+					integral_right = 0.0f;
+				}
 			}
 			else
 			{
 				integral_right = 0.0f;
+				integral_left = 0.0f;
 			}
+
+			float derivative_right = right_error - last_error_right;
+			float derivative_left = left_error - last_error_left;
+			last_error_right = right_error;
+			last_error_left = left_error;
+
+			float new_drive_left = (k_p * left_error) + (k_i * integral_left) + (k_p * derivative_left);
+			float new_drive_right = (k_p * right_error) + (k_i * integral_right) + (k_p * derivative_right);
+
+			power_left = get_power_value(new_drive_left);
+			power_right = get_power_value(new_drive_right);
 		}
-		else
-		{
-			integral_right = 0.0f;
-			integral_left = 0.0f;
-		}
-
-		float derivative_right = right_error - last_error_right;
-		float derivative_left = left_error - last_error_left;
-		last_error_right = right_error;
-		last_error_left = left_error;
-
-		float new_drive_left = (k_p * left_error) + (k_i * integral_left) + (k_p * derivative_left);
-		float new_drive_right = (k_p * right_error) + (k_i * integral_right) + (k_p * derivative_right);
-
-		power_left = get_power_value(new_drive_left);
-		power_right = get_power_value(new_drive_right);
 	}
 
 	static void finalise()
 	{
 		#if defined(DRIVE_DEBUG)
 		lcdPrint(uart1, 1, "l: %d r: %d", power_left, power_right);
+		//printf("w: %.1f a: %.1f\n", right_rpm, right_real_rpm);
 		#endif
 
 		// front left
 		motorSet(2, power_left);
 		// back left
 		motorSet(3, power_left);
+
+		motorSet(8, power_left);
+
 		// front right
 		motorSet(4, power_right);
 		// back right
 		motorSet(5, power_right);
+
+		motorSet(9, power_right);
 	}
 
 	static void run_frame()
