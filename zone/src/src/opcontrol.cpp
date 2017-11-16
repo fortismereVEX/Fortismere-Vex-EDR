@@ -28,10 +28,10 @@ void operatorControl()
 {
 	lcd::displayOptions(enums::enums_max, enums_strings, enums_callback);
 
-	float value = 5.0f;
-	float min = 1.0f;
-	float max = 10.0f;
-	lcd::displayRealtime(&value, &min, &max);
+	// float value = 5.0f;
+	// float min = 1.0f;
+	// float max = 10.0f;
+	// lcd::displayRealtime(&value, &min, &max);
 
 	while (true)
 	{

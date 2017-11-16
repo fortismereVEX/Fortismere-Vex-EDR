@@ -93,7 +93,15 @@ class encoder
 {
 	Encoder e;
 public:
-	encoder() = default;
+	encoder()
+	{
+	}
+
+	encoder(int top, int bot, bool reverse = false)
+	{
+		e = encoderInit(top, bot, reverse);
+		encoderReset(e);
+	}
 
 	void init(int top, int bot, bool reverse = false)
 	{
@@ -111,7 +119,7 @@ public:
 		encoderReset(e);
 	}
 
-	int get()
+	int get_value(bool *success)
 	{
 		encoderGet(e);
 	}
@@ -122,7 +130,13 @@ class ime
 	char ime_address;
 public:
 
-	ime() = default;
+	ime(){}
+
+	ime(char address)
+	{
+		ime_address = address;
+		imeReset(ime_address);
+	}
 
 	void init(char address)
 	{
@@ -142,6 +156,81 @@ public:
 
 		return value / 24.5;
 	}
+};
 
 
+template<typename E>
+class pid_helper
+{
+	E enc;
+	
+	float p;
+	float i;
+	float d;
+	float scale;
+	float dt;
+
+	char requested_power;
+	char new_power;
+
+	float last_error;
+
+	bool has_integral;
+	float integral;
+
+	float get_rpm_value(char power)
+	{
+		return ((float)power / 127.0f) * scale;
+	}
+
+	char get_power_value(float rpm)
+	{
+		return (char)((rpm / scale) * 127.0f);
+	}
+
+public:
+	pid_helper(E enc, float p, float i, float d, float scale) : enc(enc), p(p), i(i), d(d), scale(scale), has_integral(i != 0.0f)
+	{
+
+	}
+
+	void set_requested(char n)
+	{
+		requested_power = n;
+	}
+
+	void set_dt(int n)
+	{
+		dt = n;
+	}
+
+	char get_new_power()
+	{
+		return new_power;
+	}
+
+	void step()
+	{
+		float rpm = get_rpm_value(requested_power);
+		float real_rpm = enc.get_value(nullptr);
+		float error = rpm - real_rpm;
+
+		if(has_integral)
+		{
+			if(abs(error) < 50.0f)
+			{
+				integral = integral + error * dt;
+			}
+		}
+		else
+		{
+			integral = 0.0f;
+		}
+
+		float derivative = error - last_error;
+		last_error = error;
+
+		float new_rpm = (p * error) + (i * integral) + (d * derivative);
+		new_power = get_power_value(new_rpm);
+	}
 };

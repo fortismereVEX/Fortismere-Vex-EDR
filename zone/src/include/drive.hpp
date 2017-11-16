@@ -4,7 +4,7 @@
 
 #include "lcd.hpp"
 
-#define DRIVE_DEBUG
+//#define DRIVE_DEBUG
 
 // TODO: recorder + replay should be the same class
 
@@ -111,42 +111,17 @@ class drive
 	static recorder *rec;
 	static replay *rep;
 
-	// pid values
-	//static encoder enc_left;
-	//static encoder enc_right;
-
 	static int last_time;
 
 	static bool pid_enabled;
 
-	static ime ime_left;
-	static ime ime_right;
+	static pid_helper<ime> pid_drive_left;
+	static pid_helper<ime> pid_drive_right;
 
 	static char power_left;
 	static char power_right;
-
 	static float requested_left;
 	static float requested_right;
-
-	// TODO: these need to be left + right
-	static float k_p;
-	static float k_i;
-	static float k_d;
-
-	static float integral_left;
-	static float integral_right;
-	static float last_error_left;
-	static float last_error_right;
-
-	static float get_rpm_value(char power)
-	{
-		return ((float)power / 127.0f) * 800.0f;
-	}
-
-	static char get_power_value(float rpm)
-	{
-		return (char)((rpm / 800.0f) * 127.0f);
-	}
 
 	static int get_delta_time()
 	{
@@ -161,9 +136,6 @@ public:
 	{
 		auto inited = imeInitializeAll();
 		lcd::printf("%d imes", inited);
-
-		ime_left.init(0);
-		ime_right.init(1);
 	}
 
 	static int get_joystick_analog(int axis)
@@ -177,6 +149,7 @@ public:
 		char value = joystickGetAnalog(1, axis);
 
 		// account for dead space
+		// TODO: we shouldnt need to deal with this
 		if(abs(value) < 20) value = 0;
 
 		if(in_recording == true)
@@ -213,6 +186,8 @@ public:
 
 	static void run_intake()
 	{
+		// TODO: split into setting values here and
+		// applying them in finalise to be consistent with other code
 		if(get_joystick_digital(7, JOY_UP))
 		{
 			motorSet(6, 127);
@@ -245,63 +220,22 @@ public:
 		{
 			pid_enabled = false;
 		}
+
 		if(pid_enabled)
 		{
-			float left_rpm = get_rpm_value(power_left);
-			float right_rpm = get_rpm_value(power_right);
+			int dt = get_delta_time();
+			
+			pid_drive_left.set_dt(dt);
+			pid_drive_left.set_requested(power_left);
+			
+			pid_drive_right.set_dt(dt);
+			pid_drive_right.set_requested(power_right);
 
-			float left_real_rpm = ime_left.get_value(nullptr);
-			float right_real_rpm = ime_right.get_value(nullptr);
+			pid_drive_left.step();
+			pid_drive_right.step();
 
-			#if defined(DRIVE_DEBUG)
-			lcdPrint(uart1, 2, "w: %.1f a: %.1f", right_rpm, right_real_rpm);
-			//printf("w: %.1f a: %.1f\n", right_rpm, right_real_rpm);
-			#endif
-
-			float left_error = left_rpm - left_real_rpm;
-			float right_error = right_rpm - right_real_rpm;
-
-			#if defined(DRIVE_DEBUG)
-			printf("l: %.1f r: %.1f\n", left_error, right_error);
-			#endif
-
-			if(k_i != 0.0f)
-			{
-				int dt = get_delta_time();
-				if(abs(left_error) < 30.0f)
-				{
-					integral_left = integral_left + left_error * dt;
-				}
-				else
-				{
-					integral_left = 0.0f;
-				}
-
-				if(abs(right_error) < 30.0f)
-				{
-					integral_right = integral_right + right_error * dt;
-				}
-				else
-				{
-					integral_right = 0.0f;
-				}
-			}
-			else
-			{
-				integral_right = 0.0f;
-				integral_left = 0.0f;
-			}
-
-			float derivative_right = right_error - last_error_right;
-			float derivative_left = left_error - last_error_left;
-			last_error_right = right_error;
-			last_error_left = left_error;
-
-			float new_drive_left = (k_p * left_error) + (k_i * integral_left) + (k_p * derivative_left);
-			float new_drive_right = (k_p * right_error) + (k_i * integral_right) + (k_p * derivative_right);
-
-			power_left = get_power_value(new_drive_left);
-			power_right = get_power_value(new_drive_right);
+			power_left = pid_drive_left.get_new_power();
+			power_right = pid_drive_right.get_new_power();
 		}
 	}
 
@@ -329,14 +263,15 @@ public:
 
 	static void run_frame()
 	{
+		// build motor values
 		run_drive();
-
 		run_intake();
-
 		run_lift();
 
+		// run pid where needed
 		pid_frame();
 
+		// set final motor values
 		finalise();
 	}
 };
