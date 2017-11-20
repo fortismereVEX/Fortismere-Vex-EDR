@@ -3,8 +3,8 @@
 bool drive::in_demo;
 bool drive::in_recording = false;
 
-recorder *drive::rec = nullptr;
-replay *drive::rep = nullptr;
+//recorder *drive::rec = nullptr;
+//replay *drive::rep = nullptr;
 
 int drive::last_time = 0;
 

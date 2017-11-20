@@ -3,13 +3,12 @@
 #include "drive.hpp"
 #include "lcd.hpp"
 
-
 extern "C" {
 void __libc_init_array();
 }
 
 void initializeIO() {
-    watchdogInit();
+    //watchdogInit();
 }
 
 void initialize() {
@@ -23,10 +22,17 @@ void initialize() {
     printf("\n\n\n");
     delay(500);
 
-    printf("====================\n");
+    printf("=====================\n");
     printf("running init code\n");
     printf("=====================\n");
 
+    printf("=> lcd\n");
     lcd::initialize();
+
+    printf("=> drive\n");
     drive::initialize();
+
+    printf("====================\n");
+    printf("init complete\n");
+    printf("====================\n");
 }

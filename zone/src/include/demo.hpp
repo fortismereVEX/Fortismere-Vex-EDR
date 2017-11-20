@@ -1,5 +1,5 @@
 #pragma once
-#include <main.h>
+#include <main.hpp>
 
 class demo {
 public:
@@ -30,10 +30,10 @@ public:
     }
 
     void switch_mode(mode m) {
-        if (mode == mode_read) {
+        if (current_mode == mode_read) {
             current_mode = mode_read;
             pos          = 0;
-        } else if (mode == mode_write) {
+        } else if (current_mode == mode_write) {
             current_mode = mode_write;
             pos          = 0;
         }
@@ -53,7 +53,7 @@ public:
 
     bool save_to_disk(const char *filename) {
         if (current_mode != mode_write) {
-            printf("trying to write a file in read mode\n");
+            printf("trying to write a file in read mode\nThis is a code bug\n\n");
             lcd::displayMessage("w: write in read");
         }
 
@@ -78,7 +78,7 @@ public:
 
     bool read_from_disk(const char *filename) {
         if (current_mode != mode_read) {
-            printf("trying to read a file in write mode\n");
+            printf("trying to read a file in write mode\nThis is a code bug\n\n");
             lcd::displayMessage("r: read in write");
         }
 
@@ -97,12 +97,12 @@ public:
         int read = fread(buffer, 1, size, f);
 
         if (read != size) {
-            printf("unable to read whole buffer\n");
+            printf("unable to read whole buffer\nThis is a code bug\n\n");
         }
     }
 
     void read(char *type, char *byte) {
-        type = &buffer[++position];
-        byte = &buffer[++position];
+        type = &buffer[++pos];
+        byte = &buffer[++pos];
     }
 };

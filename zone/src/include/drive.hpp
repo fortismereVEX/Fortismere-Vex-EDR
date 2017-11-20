@@ -15,8 +15,8 @@ class drive {
     static bool in_demo;
     static bool in_recording;
 
-    static recorder *rec;
-    static replay *  rep;
+    //static recorder *rec;
+    //static replay *  rep;
 
     static int last_time;
 
@@ -86,17 +86,27 @@ public:
         // applying them in finalise to be consistent with other code
         if (get_joystick_digital(7, JOY_UP)) {
             motorSet(6, 127);
-            motorSet(7, -127);
+            motorSet(3, -127);
         } else if (get_joystick_digital(7, JOY_DOWN)) {
             motorSet(6, -127);
-            motorSet(7, 127);
+            motorSet(3, 127);
         } else {
             motorSet(6, 0);
-            motorSet(7, 0);
+            motorSet(3, 0);
         }
     }
 
     static void run_lift() {
+        if (get_joystick_digital(6, JOY_UP)) {
+            motorSet(7, 127);
+            motorSet(8, -127);
+        } else if (get_joystick_digital(6, JOY_DOWN)) {
+            motorSet(7, -127);
+            motorSet(8, 127);
+        } else {
+            motorSet(7, 0);
+            motorSet(8, 0);
+        }
     }
 
     static void pid_frame() {
@@ -130,18 +140,18 @@ public:
 #endif
 
         // front left
-        motorSet(2, power_left);
+        motorSet(4, power_left);
         // back left
-        motorSet(3, power_left);
+        motorSet(1, -power_left);
 
-        motorSet(8, power_left);
+        motorSet(9, power_left);
 
         // front right
-        motorSet(4, power_right);
-        // back right
         motorSet(5, power_right);
+        // back right
+        motorSet(10, -power_right);
 
-        motorSet(9, power_right);
+        motorSet(2, power_right);
     }
 
     static void run_frame() {
