@@ -20,7 +20,7 @@ class drive {
 
     static int last_time;
 
-    static bool pid_enabled;
+    static bool slow_mode;
 
     static pid_helper<ime> pid_drive_left;
     static pid_helper<ime> pid_drive_right;
@@ -85,11 +85,11 @@ public:
         // TODO: split into setting values here and
         // applying them in finalise to be consistent with other code
         if (get_joystick_digital(7, JOY_UP)) {
-            motorSet(6, 127);
-            motorSet(3, -127);
-        } else if (get_joystick_digital(7, JOY_DOWN)) {
             motorSet(6, -127);
             motorSet(3, 127);
+        } else if (get_joystick_digital(7, JOY_DOWN)) {
+            motorSet(6, 127);
+            motorSet(3, -127);
         } else {
             motorSet(6, 0);
             motorSet(3, 0);
@@ -111,26 +111,29 @@ public:
 
     static void pid_frame() {
         if (get_joystick_digital(8, JOY_UP)) {
-            pid_enabled = true;
+            slow_mode = true;
         } else if (get_joystick_digital(8, JOY_DOWN)) {
-            pid_enabled = false;
+            slow_mode = false;
         }
 
-        if (pid_enabled) {
-            int dt = get_delta_time();
-
-            pid_drive_left.set_dt(dt);
-            pid_drive_left.set_requested(power_left);
-
-            pid_drive_right.set_dt(dt);
-            pid_drive_right.set_requested(power_right);
-
-            pid_drive_left.step();
-            pid_drive_right.step();
-
-            power_left  = pid_drive_left.get_new_power();
-            power_right = pid_drive_right.get_new_power();
+        if (slow_mode == true) {
+            power_left  = (float)power_left / 1.5;
+            power_right = (float)power_right / 1.5;
         }
+
+        int dt = get_delta_time();
+
+        pid_drive_left.set_dt(dt);
+        pid_drive_left.set_requested(power_left);
+
+        pid_drive_right.set_dt(dt);
+        pid_drive_right.set_requested(power_right);
+
+        pid_drive_left.step();
+        pid_drive_right.step();
+
+        power_left  = pid_drive_left.get_new_power();
+        power_right = pid_drive_right.get_new_power();
     }
 
     static void finalise() {

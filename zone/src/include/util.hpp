@@ -82,10 +82,10 @@ class encoder {
     int last_tick;
 
 public:
-    encoder() : dt(0) {
+    encoder() : last_time(0), last_tick(0) {
     }
 
-    encoder(int top, int bot, bool reverse = false) : dt(0) {
+    encoder(int top, int bot, bool reverse = false) : last_time(0), last_tick(0) {
         init(top, bot, reverse);
     }
 
@@ -112,6 +112,10 @@ public:
         last_tick      = new_tick;
 
         float new_vel = delta_tick / delta_time;
+
+        if (success != nullptr) {
+            *success = true;
+        }
 
         return new_vel * 1000;
     }

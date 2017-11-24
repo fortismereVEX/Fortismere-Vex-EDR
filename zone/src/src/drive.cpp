@@ -11,7 +11,7 @@ int drive::last_time = 0;
 pid_helper<ime> drive::pid_drive_left(ime(0), 0.9f, 0.0f, 0.9f, 700.0f);
 pid_helper<ime> drive::pid_drive_right(ime(1), 0.9f, 0.0f, 0.9f, 700.0f);
 
-bool drive::pid_enabled = true;
+bool drive::slow_mode = false;
 
 char drive::power_left;
 char drive::power_right;
