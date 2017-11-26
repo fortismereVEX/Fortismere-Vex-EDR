@@ -8,11 +8,32 @@ void __libc_init_array();
 }
 
 void initializeIO() {
-    //watchdogInit();
+    watchdogInit();
+}
+
+// TEMPORARY
+enum class autonomous_options {
+    autonomous_blue_right = 0,
+    autonomous_blue_left,
+    autonomous_red_right,
+    autonomous_red_left,
+
+    autonomous_max = autonomous_red_left
+};
+
+const char *autonomous_options_strings[] = {
+    "blue_right",
+    "blue_left",
+    "red_right",
+    "red_left",
+};
+
+void autonomous_options_callback(autonomous_options result) {
+    extern int g_autonomous;
+    g_autonomous = (int)result;
 }
 
 void initialize() {
-    delay(1000);
     __libc_init_array();
 
     printf("=========================\n");
@@ -20,7 +41,6 @@ void initialize() {
     printf("=========================\n");
 
     printf("\n\n\n");
-    delay(500);
 
     printf("=====================\n");
     printf("running init code\n");
@@ -35,4 +55,6 @@ void initialize() {
     printf("====================\n");
     printf("init complete\n");
     printf("====================\n");
+
+    lcd::displayOptions(autonomous_options::autonomous_max, autonomous_options_strings, &autonomous_options_callback);
 }

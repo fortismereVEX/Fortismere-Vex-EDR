@@ -20,6 +20,7 @@ class lcd {
         Bool,
     };
 
+    static TaskHandle   lcd_task_handle;
     static stack<state> state_stack;
 
     static char *message_string;
@@ -212,7 +213,15 @@ public:
         state_stack.push(state::wait);
 
         // create lcd task
-        taskCreate(&lcdtask, TASK_DEFAULT_STACK_SIZE, nullptr, TASK_PRIORITY_DEFAULT);
+        lcd_task_handle = taskCreate(&lcdtask, TASK_DEFAULT_STACK_SIZE, nullptr, TASK_PRIORITY_DEFAULT);
+    }
+
+    static void suspendLcdThread() {
+        taskSuspend(lcd_task_handle);
+        lcd_mutex.unlock(); // make sure to unlock the mutex so there are no deadlocks
+    }
+    static void resumeLcdThread() {
+        taskResume(lcd_task_handle);
     }
 
     static void displayMessage(char *message) {
