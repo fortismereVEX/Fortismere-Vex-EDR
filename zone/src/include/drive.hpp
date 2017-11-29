@@ -39,7 +39,15 @@ class drive {
 
 public:
     static void initialize() {
+
+        imeShutdown();
+
+        delay(1000);
+
+        printf("==> imeInitializeAll()\n");
         auto inited = imeInitializeAll();
+        printf("<=\n");
+
         lcd::printf("%d imes", inited);
     }
 

@@ -3,11 +3,8 @@
 #include "lcd.hpp"
 #include "util.hpp"
 
-static pid_real_helper<ime> pid_drive_left(ime(0), 1.0f, 0.0f, 0.0f, 0.0f);
-static pid_real_helper<ime> pid_drive_right(ime(1), 1.0f, 0.0f, 0.0f, 0.0f);
-
-static float requested_right = 0.0f;
-static float requested_left  = 0.0f;
+static pid_helper_real<ime> pid_drive_left(ime(0), 0.5f, 0.2f, 0.2f);
+static pid_helper_real<ime> pid_drive_right(ime(1), 0.5f, 0.2f, 0.2f);
 
 static int last_time = 0;
 
@@ -19,161 +16,76 @@ static int get_delta_time() {
 }
 
 void pidtask(void *arg) {
-    int dt = get_delta_time();
 
-    pid_drive_left.set_dt(dt);
-    pid_drive_left.set_requested(requested_left);
+    while (true) {
+        int dt = get_delta_time();
 
-    pid_drive_right.set_dt(dt);
-    pid_drive_right.set_requested(requested_right);
+        pid_drive_left.set_dt(dt);
+        pid_drive_right.set_dt(dt);
 
-    pid_drive_left.step();
-    pid_drive_right.step();
+        pid_drive_left.step();
+        pid_drive_right.step();
 
-    char power_left  = pid_drive_left.get_new_power();
-    char power_right = pid_drive_right.get_new_power();
+        char power_left  = pid_drive_left.get_power();
+        char power_right = pid_drive_right.get_power();
 
-    lcdPrint(uart1, 1, "e: %.2f r: %.2f", pid_drive_left.get_error(), requested_left);
+        printf("e: %.2f rea %.2f new %d\n", pid_drive_left.get_error(), (float)pid_drive_left.get_tick(), power_left);
 
-    // front left
-    motorSet(4, power_left);
-    // back left
-    motorSet(1, -power_left);
+        // front left
+        motorSet(4, power_left);
+        // back left
+        motorSet(1, -power_left);
 
-    motorSet(9, power_left);
+        motorSet(9, power_left);
 
-    // front right
-    motorSet(5, power_right);
-    // back right
-    motorSet(10, -power_right);
+        // front right
+        motorSet(5, power_right);
+        // back right
+        motorSet(10, -power_right);
 
-    motorSet(2, power_right);
+        motorSet(2, power_right);
 
-    delay(25);
+        delay(25);
+    }
 }
 
-void turn(int power) {
-    motorSet(4, power);
-    // back left
-    motorSet(1, -power);
-
-    motorSet(9, power);
-
-    // front right
-    motorSet(5, power);
-    // back right
-    motorSet(10, -power);
-
-    motorSet(2, power);
+void forward(float distance) {
+    pid_drive_left.set_requested(-distance);
+    pid_drive_right.set_requested(distance);
 }
 
-void forward(char power) {
-    // front left
-    motorSet(4, power);
-    // back left
-    motorSet(1, -power);
-
-    motorSet(9, power);
-
-    // front right
-    motorSet(5, -power);
-    // back right
-    motorSet(10, power);
-
-    motorSet(2, -power);
-}
-
-void stop() {
-    // front left
-    motorSet(4, 0);
-    // back left
-    motorSet(1, -0);
-
-    motorSet(9, 0);
-
-    // front right
-    motorSet(5, -0);
-    // back right
-    motorSet(10, 0);
-
-    motorSet(2, -0);
-}
-
-void intake_down() {
-    motorSet(6, -127);
-    motorSet(3, 127);
-}
-
-void intake_up() {
-    motorSet(6, 127);
-    motorSet(3, -127);
-}
-
-void intake_stop() {
-    motorSet(6, 0);
-    motorSet(3, -0);
+void turn(float distance) {
+    pid_drive_left.set_requested(distance);
+    pid_drive_right.set_requested(distance);
 }
 
 int g_autonomous = 0;
 
+static TaskHandle pidtask_handle = nullptr;
+
 void autonomous() {
-    TaskHandle pidtask_handle = taskCreate(&pidtask, TASK_DEFAULT_STACK_SIZE, nullptr, TASK_PRIORITY_DEFAULT);
+    if (pidtask_handle == nullptr || taskGetState(pidtask_handle) == TASK_DEAD) {
+        pidtask_handle = taskCreate(&pidtask, TASK_DEFAULT_STACK_SIZE, nullptr, TASK_PRIORITY_DEFAULT);
+    }
 
     switch (g_autonomous) {
     case 0: {
-        forward(127);
+        forward(10000);
 
-        intake_down();
+        delay(2000);
 
-        delay(800);
+        turn(10000);
 
-        intake_stop();
+        delay(2000);
 
-        delay(1100);
+        turn(-10000);
 
-        stop();
+        delay(2000);
 
-        // pickup the mobo goal + turn
-
-        intake_up();
-
-        delay(500);
-
-        intake_stop();
-
-        turn(127);
-
-        delay(1000);
-
-        // go forwards and
-
-        forward(127);
-        delay(1700);
-
-        intake_down();
-
-        delay(500);
-
-        forward(-127);
-
-        delay(500);
-
-        intake_up();
-
-        delay(500);
-
-        intake_stop();
-
-        delay(500);
-
-        stop();
-        intake_stop();
+        forward(-10000);
         break;
     }
     case 1: {
-        forward(127);
-        delay(7000);
-        intake_stop();
         break;
     }
     case 2: {
