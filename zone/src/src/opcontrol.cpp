@@ -3,8 +3,10 @@
 #include "drive.hpp"
 #include "lcd.hpp"
 
-
 void operatorControl() {
+
+    lcd::suspendThread();
+
     while (true) {
         drive::run_frame();
 

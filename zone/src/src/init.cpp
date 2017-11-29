@@ -21,7 +21,7 @@ enum class autonomous_options {
     autonomous_max = autonomous_red_left
 };
 
-const char *autonomous_options_strings[] = {
+char *autonomous_options_strings[] = {
     "blue_right",
     "blue_left",
     "red_right",
@@ -31,6 +31,7 @@ const char *autonomous_options_strings[] = {
 void autonomous_options_callback(autonomous_options result) {
     extern int g_autonomous;
     g_autonomous = (int)result;
+    lcd::displayMessage("returned");
 }
 
 void initialize() {

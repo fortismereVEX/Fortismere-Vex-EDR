@@ -46,7 +46,6 @@ public:
     }
 
     static void lcdtask(void *) {
-        printf("lcd code wow \n");
 
         while (true) {
             lcd_mutex.lock();
@@ -64,7 +63,6 @@ public:
                 break;
             }
             case options: {
-                ::printf("options\n");
                 option_value = 0;
                 // intentionally block here
                 while (true) {
@@ -216,11 +214,11 @@ public:
         lcd_task_handle = taskCreate(&lcdtask, TASK_DEFAULT_STACK_SIZE, nullptr, TASK_PRIORITY_DEFAULT);
     }
 
-    static void suspendLcdThread() {
+    static void suspendThread() {
         taskSuspend(lcd_task_handle);
         lcd_mutex.unlock(); // make sure to unlock the mutex so there are no deadlocks
     }
-    static void resumeLcdThread() {
+    static void resumeThread() {
         taskResume(lcd_task_handle);
     }
 
