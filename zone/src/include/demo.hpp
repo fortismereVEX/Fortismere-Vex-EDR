@@ -1,6 +1,8 @@
 #pragma once
 #include <main.hpp>
 
+#include "lcd.hpp"
+
 class demo {
 public:
     enum mode {

@@ -3,8 +3,8 @@
 #include "lcd.hpp"
 #include "util.hpp"
 
-static pid_helper_real<ime> pid_drive_left(ime(0), 0.5f, 0.2f, 0.2f);
-static pid_helper_real<ime> pid_drive_right(ime(1), 0.5f, 0.2f, 0.2f);
+static pid_helper_real<ime> pid_drive_left(ime(0), 0.9f, 0.2f, 5.0f, 10.0f);
+static pid_helper_real<ime> pid_drive_right(ime(1), 0.9f, 0.2f, 5.0f, 10.0f);
 
 static int last_time = 0;
 
@@ -26,10 +26,18 @@ void pidtask(void *arg) {
         pid_drive_left.step();
         pid_drive_right.step();
 
-        char power_left  = pid_drive_left.get_power();
-        char power_right = pid_drive_right.get_power();
+        int power_left  = pid_drive_left.get_power();
+        int power_right = pid_drive_right.get_power();
 
-        printf("e: %.2f rea %.2f new %d\n", pid_drive_left.get_error(), (float)pid_drive_left.get_tick(), power_left);
+        printf("left: e: %.2f rea %.2f new %d\t\tright: e: %.2f rea %.2f new %d\n",
+               pid_drive_left.get_error(), (float)pid_drive_left.get_tick(), power_left,
+               pid_drive_right.get_error(), (float)pid_drive_right.get_tick(), power_right);
+
+        if (abs(power_left) < 10) power_left = 0;
+        if (abs(power_right) < 10) power_right = 0;
+
+        power_left  = clamp(power_left, -128, 128);
+        power_right = clamp(power_right, -128, 128);
 
         // front left
         motorSet(4, power_left);
@@ -50,8 +58,8 @@ void pidtask(void *arg) {
 }
 
 void forward(float distance) {
-    pid_drive_left.set_requested(-distance);
-    pid_drive_right.set_requested(distance);
+    pid_drive_left.set_requested(distance);
+    pid_drive_right.set_requested(-distance);
 }
 
 void turn(float distance) {
@@ -68,21 +76,12 @@ void autonomous() {
         pidtask_handle = taskCreate(&pidtask, TASK_DEFAULT_STACK_SIZE, nullptr, TASK_PRIORITY_DEFAULT);
     }
 
+    pid_drive_left.reset();
+    pid_drive_right.reset();
+
     switch (g_autonomous) {
     case 0: {
-        forward(10000);
-
-        delay(2000);
-
-        turn(10000);
-
-        delay(2000);
-
-        turn(-10000);
-
-        delay(2000);
-
-        forward(-10000);
+        forward(300);
         break;
     }
     case 1: {

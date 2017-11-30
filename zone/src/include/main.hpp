@@ -1,8 +1,11 @@
 #pragma once
 #include <API.hpp>
 
-extern "C"
-{
+// robot switch here
+#define ROBOT_ROBBIE
+//#define ROBOT_SAM
+
+extern "C" {
 void autonomous();
 void initializeIO();
 void initialize();

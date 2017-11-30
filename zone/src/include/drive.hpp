@@ -1,29 +1,43 @@
 #pragma once
 
+#include "demo.hpp"
+#include "lcd.hpp"
 #include "main.hpp"
 
-#include "lcd.hpp"
+#if defined(ROBOT_ROBBIE)
+enum motors {
+    mogo_lift = 1,
 
-//#define DRIVE_DEBUG
+    lift_left1 = 6,
+    lift_left2 = 7,
 
-#include "demo.hpp"
+    lift_right1 = 8,
+    lift_right2 = 7,
 
-// TODO: recorder + replay should be the same class
+    drive_left_front  = 2,
+    drive_left_middle = 4,
+    drive_left_back   = 4,
+
+    drive_right_front  = 9,
+    drive_right_middle = 5,
+    drive_right_back   = 5,
+
+};
+#elif defined(ROBOT_SAM)
+
+#endif
 
 class drive {
     // are we replaying joystick / button commmands
     static bool in_demo;
     static bool in_recording;
 
-    //static recorder *rec;
-    //static replay *  rep;
-
     static int last_time;
 
     static bool slow_mode;
 
-    static pid_helper<ime> pid_drive_left;
-    static pid_helper<ime> pid_drive_right;
+    static pid_helper_real<ime> pid_drive_left;
+    static pid_helper_real<ime> pid_drive_right;
 
     static char  power_left;
     static char  power_right;
@@ -45,7 +59,9 @@ public:
         delay(1000);
 
         printf("==> imeInitializeAll()\n");
-        auto inited = imeInitializeAll();
+        //auto inited = imeInitializeAll();
+        int inited = 0;
+
         printf("<=\n");
 
         lcd::printf("%d imes", inited);
@@ -87,73 +103,117 @@ public:
 
         power_right = (fwd - lr);
         power_left  = (fwd + lr);
+
+        //power_right = clamp((int)power_right, -1, 1);
+        //power_left  = clamp((int)power_left, -1, 1);
     }
 
     static void run_intake() {
         // TODO: split into setting values here and
         // applying them in finalise to be consistent with other code
         if (get_joystick_digital(7, JOY_UP)) {
+#ifdef ROBOT_SAM
             motorSet(6, -127);
             motorSet(3, 127);
+#else
+            motorSet(motors::mogo_lift, -127);
+#endif
         } else if (get_joystick_digital(7, JOY_DOWN)) {
+#ifdef ROBOT_SAM
             motorSet(6, 127);
             motorSet(3, -127);
+#else
+            motorSet(motors::mogo_lift, 127);
+#endif
         } else {
+#ifdef ROBOT_SAM
             motorSet(6, 0);
             motorSet(3, 0);
+#else
+            motorSet(motors::mogo_lift, 0);
+#endif
         }
     }
 
     static void run_lift() {
         if (get_joystick_digital(6, JOY_UP)) {
+#ifdef ROBOT_SAM
             motorSet(7, 127);
             motorSet(8, -127);
+#else
+            motorSet(motors::lift_left1, 127);
+            motorSet(motors::lift_left2, 127);
+
+            motorSet(motors::lift_right1, -127);
+            motorSet(motors::lift_right2, -127);
+#endif
         } else if (get_joystick_digital(6, JOY_DOWN)) {
+#ifdef ROBOT_SAM
             motorSet(7, -127);
             motorSet(8, 127);
+#else
+            motorSet(motors::lift_left1, -127);
+            motorSet(motors::lift_left2, -127);
+
+            motorSet(motors::lift_right1, 127);
+            motorSet(motors::lift_right2, 127);
+#endif
         } else {
+#ifdef ROBOT_SAM
             motorSet(7, 0);
             motorSet(8, 0);
+#else
+            motorSet(motors::lift_left1, 0);
+            motorSet(motors::lift_left2, 0);
+
+            motorSet(motors::lift_right1, 0);
+            motorSet(motors::lift_right2, 0);
+#endif
         }
     }
 
     static void pid_frame() {
-        if (get_joystick_digital(8, JOY_UP)) {
+        if (get_joystick_digital(8, JOY_UP))
             slow_mode = true;
-        } else if (get_joystick_digital(8, JOY_DOWN)) {
+        else if (get_joystick_digital(8, JOY_DOWN))
             slow_mode = false;
-        }
 
         if (slow_mode == true) {
             power_left  = (float)power_left / 1.5;
             power_right = (float)power_right / 1.5;
         }
-
         int dt = get_delta_time();
 
         pid_drive_left.set_dt(dt);
-        pid_drive_left.set_requested(power_left);
-
         pid_drive_right.set_dt(dt);
-        pid_drive_right.set_requested(power_right);
 
         pid_drive_left.step();
         pid_drive_right.step();
 
-        power_left  = pid_drive_left.get_new_power();
-        power_right = pid_drive_right.get_new_power();
+        int power_left  = pid_drive_left.get_power();
+        int power_right = pid_drive_right.get_power();
+
+        printf("left: e: %.2f rea %.2f new %d\t\tright: e: %.2f rea %.2f new %d\n",
+               pid_drive_left.get_error(), (float)pid_drive_left.get_tick(), power_left,
+               pid_drive_right.get_error(), (float)pid_drive_right.get_tick(), power_right);
+
+        if (abs(power_left) < 10) power_left = 0;
+        if (abs(power_right) < 10) power_right = 0;
+
+        power_left  = clamp((int)power_left, -128, 128);
+        power_right = clamp((int)power_right, -128, 128);
     }
 
     static void finalise() {
-#if defined(DRIVE_DEBUG)
-        lcdPrint(uart1, 1, "l: %d r: %d", power_left, power_right);
-//printf("w: %.1f a: %.1f\n", right_rpm, right_real_rpm);
-#endif
-
+    // TODO: merge sam and robbies motor code when i add the enum
+    // for it
+#ifdef ROBOT_SAM
         // front left
         motorSet(4, power_left);
         // back left
         motorSet(1, -power_left);
+
+        motorSet(1, power_left);
 
         motorSet(9, power_left);
 
@@ -163,6 +223,15 @@ public:
         motorSet(10, -power_right);
 
         motorSet(2, power_right);
+#elif defined(ROBOT_ROBBIE)
+        motorSet(motors::drive_left_front, power_left);
+        motorSet(motors::drive_left_middle, power_left);
+        motorSet(motors::drive_left_back, power_left);
+
+        motorSet(motors::drive_right_front, power_right);
+        motorSet(motors::drive_right_middle, power_right);
+        motorSet(motors::drive_right_back, power_right);
+#endif
     }
 
     static void run_frame() {
@@ -172,7 +241,7 @@ public:
         run_lift();
 
         // run pid where needed
-        pid_frame();
+        //pid_frame();
 
         // set final motor values
         finalise();

@@ -119,6 +119,10 @@ public:
 
         return new_vel * 1000;
     }
+
+    int get_tick(bool *success) {
+        int value = encoderGet(e);
+    }
 };
 
 class ime {
@@ -134,6 +138,10 @@ public:
 
     void init(char address) {
         ime_address = address;
+        imeReset(ime_address);
+    }
+
+    void reset() {
         imeReset(ime_address);
     }
 
@@ -230,33 +238,41 @@ class pid_helper_real {
     float p;
     float i;
     float d;
+    float scale;
     float dt;
 
     float integral;
     float last_error;
 
     float requested;
-    char  result_power;
+    int   result_power;
 
     bool has_integral;
 
 public:
-    pid_helper_real(E enc, float p, float i, float d) : enc(enc), p(p), i(i), d(d), has_integral(i != 0.0f) {}
+    pid_helper_real(E enc, float p, float i, float d, float scale) : enc(enc), p(p), i(i), d(d), scale(scale), has_integral(i != 0.0f) {}
 
     void  set_dt(int n) { dt = n; }
     void  set_requested(float delta_new) { requested += delta_new; }
     float get_error() { return last_error; }
-    char  get_power() { return result_power; }
+    int   get_power() { return result_power; }
 
     float get_tick() { return enc.get_tick(nullptr); }
 
+    void reset() {
+        enc.reset();
+        last_error = 0;
+        integral   = 0;
+        requested  = 0.0f;
+    }
+
     void step() {
 
-        int   current_tick = enc.get_tick(nullptr);
+        int   current_tick = get_tick();
         float error        = requested - current_tick;
 
         if (has_integral) {
-            if (abs(error) < 5000.0f) {
+            if (abs(error) < 50.0f) {
                 integral = integral + error * dt;
             }
         } else {
@@ -266,6 +282,6 @@ public:
         float derivative = error - last_error;
         last_error       = error;
 
-        result_power = (p * error) + (i * integral) + (d * derivative);
+        result_power = static_cast<int>((p * error) + (i * integral) + (d * derivative));
     }
 };

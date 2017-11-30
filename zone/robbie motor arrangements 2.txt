@@ -1,0 +1,17 @@
+1: mogo lift
+2: drive left front
+3: left lift 1
+4: exp 1 
+5: exp 2
+6: exp 3
+7: exp 4
+8: right lift 1
+9: drive right front
+10: cone intake
+
+
+expander:
+1: drive right middle + drive right back
+2: drive left middle + drive left back
+3: left lift 2
+4: right lift 2
