@@ -8,17 +8,18 @@
 enum motors {
     mogo_lift = 1,
 
-    lift_left1 = 6,
-    lift_left2 = 7,
+    lift_left1 = 3,
+    lift_left2 = 6,
 
     lift_right1 = 8,
     lift_right2 = 7,
 
-    drive_left_front  = 2,
+    claw_left  = 2,
+    claw_right = 9,
+
     drive_left_middle = 4,
     drive_left_back   = 4,
 
-    drive_right_front  = 9,
     drive_right_middle = 5,
     drive_right_back   = 5,
 
@@ -36,8 +37,13 @@ class drive {
 
     static bool slow_mode;
 
+#ifdef ROBOT_SAM
     static pid_helper_real<ime> pid_drive_left;
     static pid_helper_real<ime> pid_drive_right;
+#else
+    static pid_helper_real<encoder> pid_drive_left;
+    static pid_helper_real<encoder> pid_drive_right;
+#endif
 
     static char  power_left;
     static char  power_right;
@@ -101,11 +107,19 @@ public:
         int fwd = get_joystick_analog(1);
         int lr  = get_joystick_analog(3);
 
-        power_right = (fwd - lr);
-        power_left  = (fwd + lr);
+        if ((fwd + lr) == 0) {
+            pid_drive_left.reset();
+            pid_drive_right.reset();
+        } else {
 
-        //power_right = clamp((int)power_right, -1, 1);
-        //power_left  = clamp((int)power_left, -1, 1);
+            power_right = (fwd - lr);
+            power_left  = (fwd + lr);
+
+            //power_right = clamp((int)power_right, -1, 1);
+            //power_left  = clamp((int)power_left, -1, 1);
+            pid_drive_left.set_requested(power_left);
+            pid_drive_right.set_requested(power_right);
+        }
     }
 
     static void run_intake() {
@@ -141,22 +155,22 @@ public:
             motorSet(7, 127);
             motorSet(8, -127);
 #else
-            motorSet(motors::lift_left1, 127);
-            motorSet(motors::lift_left2, 127);
+            motorSet(motors::lift_left1, -127);
+            motorSet(motors::lift_left2, -127);
 
-            motorSet(motors::lift_right1, -127);
-            motorSet(motors::lift_right2, -127);
+            motorSet(motors::lift_right1, 127);
+            motorSet(motors::lift_right2, 127);
 #endif
         } else if (get_joystick_digital(6, JOY_DOWN)) {
 #ifdef ROBOT_SAM
             motorSet(7, -127);
             motorSet(8, 127);
 #else
-            motorSet(motors::lift_left1, -127);
-            motorSet(motors::lift_left2, -127);
+            motorSet(motors::lift_left1, 127);
+            motorSet(motors::lift_left2, 127);
 
-            motorSet(motors::lift_right1, 127);
-            motorSet(motors::lift_right2, 127);
+            motorSet(motors::lift_right1, -127);
+            motorSet(motors::lift_right2, -127);
 #endif
         } else {
 #ifdef ROBOT_SAM
@@ -172,16 +186,30 @@ public:
         }
     }
 
+    static void run_claw() {
+        if (get_joystick_digital(5, JOY_UP)) {
+            motorSet(claw_left, -127);
+            motorSet(claw_right, 127);
+        } else if (get_joystick_digital(5, JOY_DOWN)) {
+            motorSet(claw_left, 127);
+            motorSet(claw_right, -127);
+        } else {
+            motorSet(claw_left, 0);
+            motorSet(claw_right, 0);
+        }
+    }
+
     static void pid_frame() {
         if (get_joystick_digital(8, JOY_UP))
             slow_mode = true;
-        else if (get_joystick_digital(8, JOY_DOWN))
+        else if (get_joystick_digital(8, JOY_DOWN)) {
             slow_mode = false;
-
+        }
         if (slow_mode == true) {
             power_left  = (float)power_left / 1.5;
             power_right = (float)power_right / 1.5;
         }
+
         int dt = get_delta_time();
 
         pid_drive_left.set_dt(dt);
@@ -224,11 +252,9 @@ public:
 
         motorSet(2, power_right);
 #elif defined(ROBOT_ROBBIE)
-        motorSet(motors::drive_left_front, power_left);
         motorSet(motors::drive_left_middle, power_left);
         motorSet(motors::drive_left_back, power_left);
 
-        motorSet(motors::drive_right_front, power_right);
         motorSet(motors::drive_right_middle, power_right);
         motorSet(motors::drive_right_back, power_right);
 #endif
@@ -239,9 +265,10 @@ public:
         run_drive();
         run_intake();
         run_lift();
+        run_claw();
 
         // run pid where needed
-        //pid_frame();
+        pid_frame();
 
         // set final motor values
         finalise();

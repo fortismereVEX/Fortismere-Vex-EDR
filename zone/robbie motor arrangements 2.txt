@@ -1,12 +1,12 @@
 1: mogo lift
-2: drive left front
+2: claw left
 3: left lift 1
 4: exp 1 
 5: exp 2
 6: exp 3
 7: exp 4
 8: right lift 1
-9: drive right front
+9: claw right
 10: cone intake
 
 

@@ -19,7 +19,7 @@ private:
     void resize(unsigned additional) {
         if (current_mode != mode_write) {
             printf("trying to resize the buffer in read mode...\nThis is a code bug\n\n");
-            lcd::displayMessage("r: resize in read");
+            lcd::printf("r: resize in read");
         }
 
         size += additional;
@@ -56,7 +56,7 @@ public:
     bool save_to_disk(const char *filename) {
         if (current_mode != mode_write) {
             printf("trying to write a file in read mode\nThis is a code bug\n\n");
-            lcd::displayMessage("w: write in read");
+            lcd::printf("w: write in read");
         }
 
         // write a trailing 00 00 pair
@@ -65,14 +65,14 @@ public:
         FILE *f = fopen(filename, "w");
 
         if (f == nullptr) {
-            lcd::displayMessage("w: unable to write to file");
+            lcd::printf("w: unable to write to file");
             return false;
         }
 
         int wrote = fwrite(buffer, 1, size, f);
 
         if (wrote < size) {
-            lcd::displayMessage("w: unable to write all bytes of file");
+            lcd::printf("w: unable to write all bytes of file");
         }
 
         fclose(f);
@@ -81,13 +81,13 @@ public:
     bool read_from_disk(const char *filename) {
         if (current_mode != mode_read) {
             printf("trying to read a file in write mode\nThis is a code bug\n\n");
-            lcd::displayMessage("r: read in write");
+            lcd::printf("r: read in write");
         }
 
         FILE *f = fopen(filename, "r");
 
         if (f == nullptr) {
-            lcd::displayMessage("r: unable to read file");
+            lcd::printf("r: unable to read file");
         }
 
         fseek(f, 0, SEEK_END);

@@ -1,0 +1,31 @@
+1 : arm left
+2 : drive front left
+3 : mogo right
+4 : exp 1 
+5 : exp 2
+6 : exp 3
+7 : exp 4
+8 : lift 1 + lift 2
+9 : drive front right
+10: arm right
+
+
+expander:
+1: drive right middle + drive right back
+2: drive left middle + drive left back
+3: claw
+4: mogo left
+
+front left
+middle left
+back left
+front right
+middle right
+back right
+arm 1
+arm 2
+lift 1
+lift 2
+claw
+mogo 1
+mogo 2
