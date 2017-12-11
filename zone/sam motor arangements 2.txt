@@ -5,16 +5,16 @@
 5 : exp 2
 6 : exp 3
 7 : exp 4
-8 : lift 1 + lift 2
+8 : lift 1
 9 : drive front right
 10: arm right
 
 
 expander:
-1: drive right middle + drive right back
-2: drive left middle + drive left back
-3: claw
-4: mogo left
+4 1: drive right middle + drive right back
+5 2: drive left middle + drive left back
+6 3: claw
+7 4: mogo left
 
 front left
 middle left
@@ -25,7 +25,6 @@ back right
 arm 1
 arm 2
 lift 1
-lift 2
 claw
 mogo 1
 mogo 2

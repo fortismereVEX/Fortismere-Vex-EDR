@@ -25,7 +25,25 @@ enum motors {
 
 };
 #elif defined(ROBOT_SAM)
+enum motors {
+    arm_left  = 1,
+    arm_right = 10,
 
+    drive_left_front  = 3,
+    drive_left_middle = 7,
+    drive_left_back   = 7,
+
+    drive_right_front  = 9,
+    drive_right_middle = 5,
+    drive_right_back   = 5,
+
+    mogo_right = 2,
+    mogo_left  = 4,
+
+    claw = 6,
+
+    lift = 8,
+};
 #endif
 
 class drive {
@@ -107,16 +125,16 @@ public:
         int fwd = get_joystick_analog(1);
         int lr  = get_joystick_analog(3);
 
+        power_right = (fwd - lr);
+        power_left  = (fwd + lr);
+
         if ((fwd + lr) == 0) {
             pid_drive_left.reset();
             pid_drive_right.reset();
+
+            pid_drive_left.set_requested(power_left);
+            pid_drive_right.set_requested(power_right);
         } else {
-
-            power_right = (fwd - lr);
-            power_left  = (fwd + lr);
-
-            //power_right = clamp((int)power_right, -1, 1);
-            //power_left  = clamp((int)power_left, -1, 1);
             pid_drive_left.set_requested(power_left);
             pid_drive_right.set_requested(power_right);
         }
@@ -127,22 +145,22 @@ public:
         // applying them in finalise to be consistent with other code
         if (get_joystick_digital(7, JOY_UP)) {
 #ifdef ROBOT_SAM
-            motorSet(6, -127);
-            motorSet(3, 127);
+            motorSet(motors::mogo_left, -127);
+            motorSet(motors::mogo_right, 127);
 #else
             motorSet(motors::mogo_lift, -127);
 #endif
         } else if (get_joystick_digital(7, JOY_DOWN)) {
 #ifdef ROBOT_SAM
-            motorSet(6, 127);
-            motorSet(3, -127);
+            motorSet(motors::mogo_left, 127);
+            motorSet(motors::mogo_right, -127);
 #else
             motorSet(motors::mogo_lift, 127);
 #endif
         } else {
 #ifdef ROBOT_SAM
-            motorSet(6, 0);
-            motorSet(3, 0);
+            motorSet(motors::mogo_left, 0);
+            motorSet(motors::mogo_right, 0);
 #else
             motorSet(motors::mogo_lift, 0);
 #endif
@@ -152,8 +170,7 @@ public:
     static void run_lift() {
         if (get_joystick_digital(6, JOY_UP)) {
 #ifdef ROBOT_SAM
-            motorSet(7, 127);
-            motorSet(8, -127);
+            motorSet(motors::lift, 127);
 #else
             motorSet(motors::lift_left1, -127);
             motorSet(motors::lift_left2, -127);
@@ -163,8 +180,7 @@ public:
 #endif
         } else if (get_joystick_digital(6, JOY_DOWN)) {
 #ifdef ROBOT_SAM
-            motorSet(7, -127);
-            motorSet(8, 127);
+            motorSet(motors::lift, -127);
 #else
             motorSet(motors::lift_left1, 127);
             motorSet(motors::lift_left2, 127);
@@ -174,8 +190,7 @@ public:
 #endif
         } else {
 #ifdef ROBOT_SAM
-            motorSet(7, 0);
-            motorSet(8, 0);
+            motorSet(motors::lift, 0);
 #else
             motorSet(motors::lift_left1, 0);
             motorSet(motors::lift_left2, 0);
@@ -186,16 +201,43 @@ public:
         }
     }
 
+    static void run_arm() {
+#ifdef ROBOT_SAM
+        if (get_joystick_digital(8, JOY_UP)) {
+            motorSet(motors::arm_left, -127);
+            motorSet(motors::arm_right, -127);
+        } else if (get_joystick_digital(8, JOY_DOWN)) {
+            motorSet(motors::arm_left, 127);
+            motorSet(motors::arm_right, 127);
+        } else {
+            motorSet(motors::arm_left, 0);
+            motorSet(motors::arm_right, 0);
+        }
+#endif
+    }
+
     static void run_claw() {
         if (get_joystick_digital(5, JOY_UP)) {
+#ifdef ROBOT_SAM
+            motorSet(motors::claw, 127);
+#else
             motorSet(claw_left, -127);
             motorSet(claw_right, 127);
+#endif
         } else if (get_joystick_digital(5, JOY_DOWN)) {
+#ifdef ROBOT_SAM
+            motorSet(motors::claw, -127);
+#else
             motorSet(claw_left, 127);
             motorSet(claw_right, -127);
+#endif
         } else {
+#ifdef ROBOT_SAM
+            motorSet(motors::claw, 0);
+#else
             motorSet(claw_left, 0);
             motorSet(claw_right, 0);
+#endif
         }
     }
 
@@ -233,24 +275,16 @@ public:
     }
 
     static void finalise() {
-    // TODO: merge sam and robbies motor code when i add the enum
-    // for it
+// TODO: merge sam and robbies motor code when i add the enum
+// for it
 #ifdef ROBOT_SAM
-        // front left
-        motorSet(4, power_left);
-        // back left
-        motorSet(1, -power_left);
+        motorSet(motors::drive_left_back, power_left);
+        motorSet(motors::drive_left_middle, power_left);
+        motorSet(motors::drive_left_front, power_left);
 
-        motorSet(1, power_left);
-
-        motorSet(9, power_left);
-
-        // front right
-        motorSet(5, power_right);
-        // back right
-        motorSet(10, -power_right);
-
-        motorSet(2, power_right);
+        motorSet(motors::drive_right_back, power_right);
+        motorSet(motors::drive_right_middle, power_right);
+        motorSet(motors::drive_right_front, power_right);
 #elif defined(ROBOT_ROBBIE)
         motorSet(motors::drive_left_middle, power_left);
         motorSet(motors::drive_left_back, power_left);
@@ -265,6 +299,7 @@ public:
         run_drive();
         run_intake();
         run_lift();
+        run_arm();
         run_claw();
 
         // run pid where needed
