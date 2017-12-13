@@ -8,6 +8,10 @@
 #ifdef ROBOT_SAM
 static pid_helper_real<ime> pid_drive_left(ime(0), 1.0f, 0.0f, 1.0f, 10.0f);
 static pid_helper_real<ime> pid_drive_right(ime(1), 1.0f, 0.0f, 1.0f, 10.0f);
+#else
+static pid_helper_real<encoder> pid_drive_left(encoder(4, 5), 1.0f, 0.0f, 1.0f, 10.0f);
+static pid_helper_real<encoder> pid_drive_right(encoder(4, 5), 1.0f, 0.0f, 1.0f, 10.0f);
+
 #endif
 
 static int last_time = 0;
@@ -22,6 +26,7 @@ static int get_delta_time() {
 void pidtask(void *arg) {
 
     while (true) {
+
         int dt = get_delta_time();
 
         pid_drive_left.set_dt(dt);
@@ -33,9 +38,8 @@ void pidtask(void *arg) {
         int power_left  = pid_drive_left.get_power();
         int power_right = pid_drive_right.get_power();
 
-        printf("left: e: %.2f rea %.2f new %d\t\tright: e: %.2f rea %.2f new %d\n",
-               pid_drive_left.get_error(), (float)pid_drive_left.get_tick(), power_left,
-               pid_drive_right.get_error(), (float)pid_drive_right.get_tick(), power_right);
+        // lcd::printf("e: %.2f rea %.2",
+        //             pid_drive_left.get_error(), (float)pid_drive_left.get_tick());
 
         if (abs(power_left) < 10) power_left = 0;
         if (abs(power_right) < 10) power_right = 0;
@@ -50,7 +54,7 @@ void pidtask(void *arg) {
 }
 
 static bool at_dest() {
-    if (pid_drive_left.at_dest(50) && pid_drive_right.at_dest(5 - 0)) {
+    if (pid_drive_left.at_dest(50) && pid_drive_right.at_dest(50)) {
         pid_drive_left.reset();
         pid_drive_right.reset();
         return true;
@@ -77,10 +81,10 @@ static void turn(float distance) {
 }
 
 // TODO: file reading here
-int g_autonomous = 0;
-
+int               g_autonomous   = 0;
 static TaskHandle pidtask_handle = nullptr;
-void              autonomous() {
+
+void autonomous() {
     if (pidtask_handle == nullptr || taskGetState(pidtask_handle) == TASK_DEAD) {
         pidtask_handle = taskCreate(&pidtask, TASK_DEFAULT_STACK_SIZE, nullptr, TASK_PRIORITY_DEFAULT);
     }
@@ -90,8 +94,8 @@ void              autonomous() {
 
     switch (g_autonomous) {
     case 0: {
-        forward(1800);
-        motors::arm(127);
+        forward(2500);
+        motors::arm(-127);
         delay(500);
         motors::intake(127);
         delay(1600);
@@ -114,6 +118,7 @@ void              autonomous() {
         // dont make any assumptions here
     }
     }
+    taskDelete(pidtask_handle);
 }
 
 // TEMPORARY
@@ -133,5 +138,11 @@ static void options_callback(options result) {
 }
 
 void auto_initialize() {
+    pid_drive_left.reset();
+    pid_drive_right.reset();
+
     lcd::displayOptions(options::max, options_strings, &options_callback);
+}
+
+void auto_finish() {
 }

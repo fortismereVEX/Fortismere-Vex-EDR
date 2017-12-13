@@ -23,6 +23,15 @@ void initialize() {
 
     printf("\n\n\n");
 
+    auto power_main   = powerLevelMain();
+    auto power_backup = powerLevelBackup();
+
+    printf("====================\n");
+    printf("main: %.2fV backup: %.2fV\n", float(power_main) / 1000, float(power_backup) / 1000);
+    printf("====================\n");
+
+    printf("\n\n\n");
+
     printf("=====================\n");
     printf("running init code\n");
     printf("=====================\n");

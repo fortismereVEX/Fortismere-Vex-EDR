@@ -46,7 +46,7 @@ public:
 #ifdef ROBOT_SAM
         auto inited = imeInitializeAll();
 #else
-        //int inited = 0;
+        auto inited = 0;
 #endif
         printf("<=\n");
 
