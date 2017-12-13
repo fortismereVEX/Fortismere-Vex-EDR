@@ -3,6 +3,9 @@
 
 #include "lcd.hpp"
 
+class demo_json {
+};
+
 class demo {
 public:
     enum mode {

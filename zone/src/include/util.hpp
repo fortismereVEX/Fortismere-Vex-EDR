@@ -259,6 +259,8 @@ public:
 
     float get_tick() { return enc.get_tick(nullptr); }
 
+    bool at_dest(int bounds) { return abs(requested - get_tick()) < bounds; }
+
     void reset() {
         enc.reset();
         last_error = 0;

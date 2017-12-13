@@ -4,47 +4,7 @@
 #include "lcd.hpp"
 #include "main.hpp"
 
-#if defined(ROBOT_ROBBIE)
-enum motors {
-    mogo_lift = 1,
-
-    lift_left1 = 3,
-    lift_left2 = 6,
-
-    lift_right1 = 8,
-    lift_right2 = 7,
-
-    claw_left  = 2,
-    claw_right = 9,
-
-    drive_left_middle = 4,
-    drive_left_back   = 4,
-
-    drive_right_middle = 5,
-    drive_right_back   = 5,
-
-};
-#elif defined(ROBOT_SAM)
-enum motors {
-    arm_left  = 1,
-    arm_right = 10,
-
-    drive_left_front  = 3,
-    drive_left_middle = 7,
-    drive_left_back   = 7,
-
-    drive_right_front  = 9,
-    drive_right_middle = 5,
-    drive_right_back   = 5,
-
-    mogo_right = 2,
-    mogo_left  = 4,
-
-    claw = 6,
-
-    lift = 8,
-};
-#endif
+#include "motors.hpp"
 
 class drive {
     // are we replaying joystick / button commmands
@@ -83,9 +43,11 @@ public:
         delay(1000);
 
         printf("==> imeInitializeAll()\n");
-        //auto inited = imeInitializeAll();
-        int inited = 0;
-
+#ifdef ROBOT_SAM
+        auto inited = imeInitializeAll();
+#else
+        //int inited = 0;
+#endif
         printf("<=\n");
 
         lcd::printf("%d imes", inited);
@@ -125,16 +87,19 @@ public:
         int fwd = get_joystick_analog(1);
         int lr  = get_joystick_analog(3);
 
+        // @Hack for non pid travel
         power_right = (fwd - lr);
         power_left  = (fwd + lr);
 
         if ((fwd + lr) == 0) {
+            // Tell pid that we no longer wish to move
+            // reset to reset overall error that may have accumulated during travel
             pid_drive_left.reset();
             pid_drive_right.reset();
-
-            pid_drive_left.set_requested(power_left);
-            pid_drive_right.set_requested(power_right);
+            pid_drive_left.set_requested(0);
+            pid_drive_right.set_requested(0);
         } else {
+            // ask pid to add this to our destination value
             pid_drive_left.set_requested(power_left);
             pid_drive_right.set_requested(power_right);
         }
@@ -144,100 +109,42 @@ public:
         // TODO: split into setting values here and
         // applying them in finalise to be consistent with other code
         if (get_joystick_digital(7, JOY_UP)) {
-#ifdef ROBOT_SAM
-            motorSet(motors::mogo_left, -127);
-            motorSet(motors::mogo_right, 127);
-#else
-            motorSet(motors::mogo_lift, -127);
-#endif
+            motors::intake(127);
         } else if (get_joystick_digital(7, JOY_DOWN)) {
-#ifdef ROBOT_SAM
-            motorSet(motors::mogo_left, 127);
-            motorSet(motors::mogo_right, -127);
-#else
-            motorSet(motors::mogo_lift, 127);
-#endif
+            motors::intake(-127);
         } else {
-#ifdef ROBOT_SAM
-            motorSet(motors::mogo_left, 0);
-            motorSet(motors::mogo_right, 0);
-#else
-            motorSet(motors::mogo_lift, 0);
-#endif
+            motors::intake(0);
         }
     }
 
     static void run_lift() {
         if (get_joystick_digital(6, JOY_UP)) {
-#ifdef ROBOT_SAM
-            motorSet(motors::lift, 127);
-#else
-            motorSet(motors::lift_left1, -127);
-            motorSet(motors::lift_left2, -127);
-
-            motorSet(motors::lift_right1, 127);
-            motorSet(motors::lift_right2, 127);
-#endif
+            motors::lift(127);
         } else if (get_joystick_digital(6, JOY_DOWN)) {
-#ifdef ROBOT_SAM
-            motorSet(motors::lift, -127);
-#else
-            motorSet(motors::lift_left1, 127);
-            motorSet(motors::lift_left2, 127);
-
-            motorSet(motors::lift_right1, -127);
-            motorSet(motors::lift_right2, -127);
-#endif
+            motors::lift(-127);
         } else {
-#ifdef ROBOT_SAM
-            motorSet(motors::lift, 0);
-#else
-            motorSet(motors::lift_left1, 0);
-            motorSet(motors::lift_left2, 0);
-
-            motorSet(motors::lift_right1, 0);
-            motorSet(motors::lift_right2, 0);
-#endif
+            motors::lift(0);
         }
     }
 
     static void run_arm() {
-#ifdef ROBOT_SAM
         if (get_joystick_digital(8, JOY_UP)) {
-            motorSet(motors::arm_left, -127);
-            motorSet(motors::arm_right, -127);
+            motors::arm(-127);
         } else if (get_joystick_digital(8, JOY_DOWN)) {
-            motorSet(motors::arm_left, 127);
-            motorSet(motors::arm_right, 127);
+            motors::arm(127);
         } else {
-            motorSet(motors::arm_left, 0);
-            motorSet(motors::arm_right, 0);
+            motors::arm(0);
         }
-#endif
     }
 
     static void run_claw() {
         if (get_joystick_digital(5, JOY_UP)) {
-#ifdef ROBOT_SAM
-            motorSet(motors::claw, 127);
-#else
-            motorSet(claw_left, -127);
-            motorSet(claw_right, 127);
-#endif
+            motors::claw(127);
         } else if (get_joystick_digital(5, JOY_DOWN)) {
-#ifdef ROBOT_SAM
-            motorSet(motors::claw, -127);
-#else
-            motorSet(claw_left, 127);
-            motorSet(claw_right, -127);
-#endif
+
+            motors::claw(-127);
         } else {
-#ifdef ROBOT_SAM
-            motorSet(motors::claw, 0);
-#else
-            motorSet(claw_left, 0);
-            motorSet(claw_right, 0);
-#endif
+            motors::claw(0);
         }
     }
 
@@ -275,23 +182,7 @@ public:
     }
 
     static void finalise() {
-// TODO: merge sam and robbies motor code when i add the enum
-// for it
-#ifdef ROBOT_SAM
-        motorSet(motors::drive_left_back, power_left);
-        motorSet(motors::drive_left_middle, power_left);
-        motorSet(motors::drive_left_front, power_left);
-
-        motorSet(motors::drive_right_back, power_right);
-        motorSet(motors::drive_right_middle, power_right);
-        motorSet(motors::drive_right_front, power_right);
-#elif defined(ROBOT_ROBBIE)
-        motorSet(motors::drive_left_middle, power_left);
-        motorSet(motors::drive_left_back, power_left);
-
-        motorSet(motors::drive_right_middle, power_right);
-        motorSet(motors::drive_right_back, power_right);
-#endif
+        motors::drive(power_left, power_right);
     }
 
     static void run_frame() {

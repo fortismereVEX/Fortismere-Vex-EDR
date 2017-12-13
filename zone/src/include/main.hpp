@@ -2,8 +2,8 @@
 #include <API.hpp>
 
 // robot switch here
-#define ROBOT_ROBBIE
-//#define ROBOT_SAM
+//#define ROBOT_ROBBIE
+#define ROBOT_SAM
 
 extern "C" {
 void autonomous();
