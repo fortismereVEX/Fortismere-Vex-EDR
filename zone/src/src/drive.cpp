@@ -5,6 +5,9 @@ bool drive::in_recording = false;
 
 int drive::last_time = 0;
 
+bool drive::claw_open  = true;
+int  drive::claw_power = 0;
+
 #if defined(ROBOT_ROBBIE)
 pid_helper_real<encoder> drive::pid_drive_left(encoder(0, 1), 0.9f, 0.2f, 5.0f, 0.0f);
 pid_helper_real<encoder> drive::pid_drive_right(encoder(0, 1), 0.9f, 0.2f, 5.0f, 10.0f);

@@ -50,8 +50,8 @@ public:
 
     static void intake(char power) {
 #ifdef ROBOT_SAM
-        motorSet(motor_ids::mogo_left, -power);
-        motorSet(motor_ids::mogo_right, power);
+        motorSet(motor_ids::mogo_left, power);
+        motorSet(motor_ids::mogo_right, -power);
 #else
         motorSet(motor_ids::mogo_lift, -power);
 #endif
@@ -71,8 +71,8 @@ public:
 
     static void arm(char power) {
 #ifdef ROBOT_SAM
-        motorSet(motor_ids::arm_left, -power);
-        motorSet(motor_ids::arm_right, -power);
+        motorSet(motor_ids::arm_left, power);
+        motorSet(motor_ids::arm_right, power);
 #endif
     }
 

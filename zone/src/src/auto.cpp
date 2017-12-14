@@ -95,9 +95,9 @@ void autonomous() {
     switch (g_autonomous) {
     case 0: {
         forward(2500);
-        motors::arm(-127);
+        motors::arm(127);
         delay(500);
-        motors::intake(127);
+        motors::intake(-127);
         delay(1600);
         motors::arm(0);
         motors::intake(0);

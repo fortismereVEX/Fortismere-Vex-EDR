@@ -15,6 +15,10 @@ class drive {
 
     static bool slow_mode;
 
+    // other state
+    static bool claw_open;
+    static int  claw_power;
+
 #ifdef ROBOT_SAM
     static pid_helper_real<ime> pid_drive_left;
     static pid_helper_real<ime> pid_drive_right;
@@ -37,7 +41,7 @@ class drive {
 
 public:
     static void initialize() {
-
+        // initialise imes
         imeShutdown();
 
         delay(1000);
@@ -51,6 +55,14 @@ public:
         printf("<=\n");
 
         lcd::printf("%d imes", inited);
+
+// calibrate analogue sensors
+#ifdef ROBOT_SAM
+        analogCalibrate(8);
+        // TODO: arm sensor
+#elif defined(ROBOT_ROBBIE)
+        // TODO: lift potentiometers
+#endif
     }
 
     static int get_joystick_analog(int axis) {
@@ -138,13 +150,21 @@ public:
     }
 
     static void run_claw() {
-        if (get_joystick_digital(5, JOY_UP)) {
-            motors::claw(127);
-        } else if (get_joystick_digital(5, JOY_DOWN)) {
+        lcdPrint(uart1, 1, "%d", analogReadCalibrated(8));
+        // -50 to 50 full open
+        // -800 to -900 is full close
 
-            motors::claw(-127);
+        if (get_joystick_digital(5, JOY_UP)) {
+            // open
+            claw_open  = true;
+            claw_power = 127;
+        } else if (get_joystick_digital(5, JOY_DOWN)) {
+            // close
+
+            claw_open  = false;
+            claw_power = -127;
         } else {
-            motors::claw(0);
+            claw_power = 0;
         }
     }
 
@@ -154,6 +174,7 @@ public:
         else if (get_joystick_digital(8, JOY_DOWN)) {
             slow_mode = false;
         }
+
         if (slow_mode == true) {
             power_left  = (float)power_left / 1.5;
             power_right = (float)power_right / 1.5;
@@ -170,9 +191,9 @@ public:
         int power_left  = pid_drive_left.get_power();
         int power_right = pid_drive_right.get_power();
 
-        printf("left: e: %.2f rea %.2f new %d\t\tright: e: %.2f rea %.2f new %d\n",
-               pid_drive_left.get_error(), (float)pid_drive_left.get_tick(), power_left,
-               pid_drive_right.get_error(), (float)pid_drive_right.get_tick(), power_right);
+        // printf("left: e: %.2f rea %.2f new %d\t\tright: e: %.2f rea %.2f new %d\n",
+        //        pid_drive_left.get_error(), (float)pid_drive_left.get_tick(), power_left,
+        //        pid_drive_right.get_error(), (float)pid_drive_right.get_tick(), power_right);
 
         if (abs(power_left) < 10) power_left = 0;
         if (abs(power_right) < 10) power_right = 0;
@@ -183,6 +204,33 @@ public:
 
     static void finalise() {
         motors::drive(power_left, power_right);
+
+// claw
+#ifdef ROBOT_ROBBIE
+        motors::claw(claw_power);
+#elif defined(ROBOT_SAM)
+        // @TODO enum sensors
+        int tick = analogReadCalibrated(8);
+        if (claw_open == true) {
+            if (tick > -200) {
+                // we are essentially fully open so set power to a low amount
+                motors::claw(10);
+            } else {
+                motors::claw(127);
+            }
+        } else if (claw_open == false) {
+            if (tick < -600) {
+                // we missed the cone so just dont send any power (there is no point)
+                motors::claw(0);
+            } else if (tick < -300) {
+                // we are closed around a cone so set to a low power to sustain cone hold
+                motors::claw(-30);
+            } else {
+                // attempt to close 4real
+                motors::claw(-127);
+            }
+        }
+#endif
     }
 
     static void run_frame() {
