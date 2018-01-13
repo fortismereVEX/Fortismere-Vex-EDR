@@ -12,8 +12,9 @@ enum motor_ids {
     lift_right1 = 8,
     lift_right2 = 7,
 
-    claw_left  = 2,
-    claw_right = 9,
+    // TODO: these should be arm...
+    arm_left  = 2,
+    arm_right = 9,
 
     drive_left_middle = 4,
     drive_left_back   = 4,
@@ -21,6 +22,7 @@ enum motor_ids {
     drive_right_middle = 5,
     drive_right_back   = 5,
 
+    claw_roller = 10,
 };
 #elif defined(ROBOT_SAM)
 enum motor_ids {
@@ -73,6 +75,9 @@ public:
 #ifdef ROBOT_SAM
         motorSet(motor_ids::arm_left, power);
         motorSet(motor_ids::arm_right, power);
+#else
+        motorSet(motor_ids::arm_left, power);
+        motorSet(motor_ids::arm_right, -power);
 #endif
     }
 
@@ -80,8 +85,7 @@ public:
 #ifdef ROBOT_SAM
         motorSet(motor_ids::claw, power);
 #else
-        motorSet(claw_left, -power);
-        motorSet(claw_right, power);
+        motorSet(motor_ids::claw_roller, power);
 #endif
     }
 

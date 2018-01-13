@@ -7,6 +7,8 @@
 #include "motors.hpp"
 
 class drive {
+    static bool inited;
+
     // are we replaying joystick / button commmands
     static bool in_demo;
     static bool in_recording;
@@ -18,6 +20,10 @@ class drive {
     // other state
     static bool claw_open;
     static int  claw_power;
+
+#ifdef ROBOT_ROBBIE
+    static bool arm_up;
+#endif
 
 #ifdef ROBOT_SAM
     static pid_helper_real<ime> pid_drive_left;
@@ -41,6 +47,8 @@ class drive {
 
 public:
     static void initialize() {
+        if (inited == true) return;
+
         // initialise imes
         imeShutdown();
 
@@ -63,6 +71,7 @@ public:
 #elif defined(ROBOT_ROBBIE)
         // TODO: lift potentiometers
 #endif
+        inited = true;
     }
 
     static int get_joystick_analog(int axis) {
@@ -140,6 +149,7 @@ public:
     }
 
     static void run_arm() {
+#ifdef ROBOT_SAM
         if (get_joystick_digital(8, JOY_UP)) {
             motors::arm(-127);
         } else if (get_joystick_digital(8, JOY_DOWN)) {
@@ -147,10 +157,22 @@ public:
         } else {
             motors::arm(0);
         }
+#else
+        if (get_joystick_digital(5, JOY_UP)) {
+            arm_up = true;
+            motors::arm(-127);
+        } else if (get_joystick_digital(5, JOY_DOWN)) {
+            arm_up = false;
+            motors::arm(127);
+        } else {
+            motors::arm(0);
+        }
+#endif
     }
 
     static void run_claw() {
-        lcdPrint(uart1, 1, "%d", analogReadCalibrated(8));
+#ifdef ROBOT_SAM
+        lcdPrint(uart1, 2, "%d", analogReadCalibrated(8));
         // -50 to 50 full open
         // -800 to -900 is full close
 
@@ -166,19 +188,27 @@ public:
         } else {
             claw_power = 0;
         }
+#elif defined(ROBOT_ROBBIE)
+        if (get_joystick_digital(8, JOY_UP)) {
+            claw_open = true; // roll up
+
+            motors::claw(127);
+
+        } else if (get_joystick_digital(8, JOY_DOWN)) {
+            claw_open = false; // roll down
+            motors::claw(-127);
+        } else {
+            // if (claw_open) {
+            //     motors::claw(15);
+            // } else {
+            //     motors::claw(-15);
+            // }
+            motors::claw(0);
+        }
+#endif
     }
 
     static void pid_frame() {
-        if (get_joystick_digital(8, JOY_UP))
-            slow_mode = true;
-        else if (get_joystick_digital(8, JOY_DOWN)) {
-            slow_mode = false;
-        }
-
-        if (slow_mode == true) {
-            power_left  = (float)power_left / 1.5;
-            power_right = (float)power_right / 1.5;
-        }
 
         int dt = get_delta_time();
 
@@ -195,27 +225,33 @@ public:
         //        pid_drive_left.get_error(), (float)pid_drive_left.get_tick(), power_left,
         //        pid_drive_right.get_error(), (float)pid_drive_right.get_tick(), power_right);
 
+        //lcdPrint(uart1, 1, "e: %.2f", pid_drive_left.get_error());
+        //lcdPrint(uart1, 2, "r: %.2f", pid_drive_left.get_tick());
+        lcdPrint(uart1, 1, "null? %s", !pid_drive_left.get_encoder().get_encoder() ? "true" : "false");
+        lcdPrint(uart1, 2, "v: %d", encoderGet(pid_drive_left.get_encoder().get_encoder()));
+
         if (abs(power_left) < 10) power_left = 0;
         if (abs(power_right) < 10) power_right = 0;
 
-        power_left  = clamp((int)power_left, -128, 128);
-        power_right = clamp((int)power_right, -128, 128);
+        power_left  = clamp((int)power_left, -127, 127);
+        power_right = clamp((int)power_right, -127, 127);
     }
 
     static void finalise() {
         motors::drive(power_left, power_right);
 
-// claw
+        // finalise the claw values
 #ifdef ROBOT_ROBBIE
-        motors::claw(claw_power);
+        //motors::claw(claw_power);
 #elif defined(ROBOT_SAM)
         // @TODO enum sensors
         int tick = analogReadCalibrated(8);
         if (claw_open == true) {
-            if (tick > -200) {
+            if (tick > -100) {
                 // we are essentially fully open so set power to a low amount
-                motors::claw(10);
+                motors::claw(0);
             } else {
+                // attempt to open 4real
                 motors::claw(127);
             }
         } else if (claw_open == false) {

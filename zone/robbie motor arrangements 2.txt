@@ -15,3 +15,12 @@ expander:
 2: drive left middle + drive left back
 3: left lift 2
 4: right lift 2
+
+sensors:
+analogue:
+2: left lift
+3: right lift
+
+digital:
+2: + 3: left
+4 + 5: right

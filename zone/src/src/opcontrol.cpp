@@ -5,6 +5,8 @@
 
 extern void auto_finish();
 
+Encoder e;
+
 void operatorControl() {
 
     lcd::suspendThread();
@@ -14,7 +16,6 @@ void operatorControl() {
 
     while (true) {
         drive::run_frame();
-
         delay(1);
     }
 }

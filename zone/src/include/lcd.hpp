@@ -53,7 +53,7 @@ public:
             switch (state_stack.top()) {
             case wait: {
                 // implement a menu for this
-                lcdPrint(uart1, 2, "waiting...");
+                //lcdPrint(uart1, 2, "waiting...");
                 break;
             }
             case message: {
@@ -215,11 +215,11 @@ public:
     }
 
     static void suspendThread() {
-        taskSuspend(lcd_task_handle);
-        lcd_mutex.unlock(); // make sure to unlock the mutex so there are no deadlocks
+        //taskSuspend(lcd_task_handle);
+        //lcd_mutex.unlock(); // make sure to unlock the mutex so there are no deadlocks
     }
     static void resumeThread() {
-        taskResume(lcd_task_handle);
+        //taskResume(lcd_task_handle);
     }
 
     static void displayMessage(char *message) {

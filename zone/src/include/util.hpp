@@ -103,26 +103,15 @@ public:
     }
 
     int get_value(bool *success) {
-        int new_time   = millis();
-        int delta_time = new_time - last_time;
-        last_time      = new_time;
-
-        int new_tick   = encoderGet(e);
-        int delta_tick = new_tick - last_tick;
-        last_tick      = new_tick;
-
-        float new_vel = delta_tick / delta_time;
-
-        if (success != nullptr) {
-            *success = true;
-        }
-
-        return new_vel * 1000;
+        return get_tick(success);
     }
 
     int get_tick(bool *success) {
         int value = encoderGet(e);
+        return value;
     }
+
+    Encoder get_encoder() { return e; }
 };
 
 class ime {
@@ -169,69 +158,6 @@ public:
 };
 
 template <typename E>
-class pid_helper {
-    E enc;
-
-    float p;
-    float i;
-    float d;
-    float scale;
-    float dt;
-
-    char requested_power;
-    char new_power;
-
-    float last_error;
-
-    bool  has_integral;
-    float integral;
-
-    float get_rpm_value(char power) {
-        return ((float)power / 127.0f) * scale;
-    }
-
-    char get_power_value(float rpm) {
-        return (char)((rpm / scale) * 127.0f);
-    }
-
-public:
-    pid_helper(E enc, float p, float i, float d, float scale) : enc(enc), p(p), i(i), d(d), scale(scale), has_integral(i != 0.0f) {
-    }
-
-    void set_requested(char n) {
-        requested_power = n;
-    }
-
-    void set_dt(int n) {
-        dt = n;
-    }
-
-    char get_new_power() {
-        return new_power;
-    }
-
-    void step() {
-        float rpm      = get_rpm_value(requested_power);
-        float real_rpm = enc.get_value(nullptr);
-        float error    = rpm - real_rpm;
-
-        if (has_integral) {
-            if (abs(error) < 50.0f) {
-                integral = integral + error * dt;
-            }
-        } else {
-            integral = 0.0f;
-        }
-
-        float derivative = error - last_error;
-        last_error       = error;
-
-        float new_rpm = (p * error) + (i * integral) + (d * derivative);
-        new_power     = get_power_value(new_rpm);
-    }
-};
-
-template <typename E>
 class pid_helper_real {
     E enc;
 
@@ -254,10 +180,13 @@ public:
 
     void  set_dt(int n) { dt = n; }
     void  set_requested(float delta_new) { requested += delta_new; }
+    float get_requested() { return requested; }
     float get_error() { return last_error; }
     int   get_power() { return result_power; }
 
     float get_tick() { return enc.get_tick(nullptr); }
+
+    E get_encoder() { return enc; }
 
     bool at_dest(int bounds) { return abs(requested - get_tick()) < bounds; }
 

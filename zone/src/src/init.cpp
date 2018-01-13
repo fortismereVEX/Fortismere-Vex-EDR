@@ -3,18 +3,26 @@
 #include "drive.hpp"
 #include "lcd.hpp"
 
+bool init_inited    = false;
+bool init_inited_IO = false;
+
 extern "C" {
 void __libc_init_array();
 }
 
 void initializeIO() {
     watchdogInit();
+
+    init_inited_IO = true;
 }
 
 // TOOD: header and static class
 extern void auto_initialize();
 
 void initialize() {
+    if (init_inited_IO == false)
+        initializeIO();
+
     __libc_init_array();
 
     printf("=========================\n");
@@ -48,4 +56,6 @@ void initialize() {
     printf("====================\n");
     printf("init complete\n");
     printf("====================\n");
+
+    init_inited = true;
 }
