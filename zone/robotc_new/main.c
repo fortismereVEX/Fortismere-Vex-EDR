@@ -5,12 +5,7 @@
 #define ROBOT_ROBBIE
 //#define ROBOT_SAM
 
-
-#ifdef ROBOT_ROBBIE
-// Do motor pragmas here
-#elif defined(ROBOT_SAM)
-// Do motor pragmas here
-#endif
+#include "motor_config.h"
 
 #include "robotc_base_include.c"
 
@@ -18,12 +13,15 @@
 #include "auton_control.c"
 #include "init.c"
 
-
 // TODO: pid, (lcd), drive, auton selection, actual distance calibration
 
-void pre_auton() {
+void init() {
     // Dont let robotc remove our tasks for us
     stop_tasks_between_mode = false;
+
+    //taskStart(pid_task);
+    //taskStart(lcd_task);
+
 
     // TODO: Select auton here
     //       Setup pid tasks
