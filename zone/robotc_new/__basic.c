@@ -1,7 +1,8 @@
 #pragma config(Sensor, in1,    left_line_sensor, sensorLineFollower)
 #pragma config(Sensor, in2,    right_line_sensor, sensorLineFollower)
-#pragma config(Sensor, dgtl1,  left_encoder,   sensorQuadEncoder)
-#pragma config(Sensor, dgtl3,  right_encoder,  sensorQuadEncoder)
+#pragma config(Sensor, in3,    claw_potent,    sensorPotentiometer)
+#pragma config(Sensor, dgtl1,  right_encoder,  sensorQuadEncoder)
+#pragma config(Sensor, dgtl3,  left_encoder,   sensorQuadEncoder)
 #pragma config(Motor,  port1,           claw_1,        tmotorNone, openLoop)
 #pragma config(Motor,  port2,           right_front,   tmotorVex393_MC29, openLoop)
 #pragma config(Motor,  port3,           left_front,    tmotorVex393_MC29, openLoop)
@@ -20,15 +21,29 @@
 #define min(x, a) (x < a ? x : a)
 #define clamp(x, a, b) (min(b, max(a, x)))
 
+float requested_left = 0.0;
+float requested_right = 0.0;
+
+float current_left = 0.0;
+float current_right = 0.0;
+
+float max_speed = 60.0;
+
 void get_requested_delta(float *left, float *right) {
-    int r = (vexRT[Ch1] + vexRT[Ch3]);
-    int l = (vexRT[Ch1] - vexRT[Ch3]);
+    int r = (vexRT[Ch1] - vexRT[Ch3]);
+    int l = (vexRT[Ch1] + vexRT[Ch3]);
 
     *left  = abs(l) > 20 ? l : 0;
     *right = abs(r) > 20 ? r : 0;
 }
 
-float step_pid(float constant_p, float constant_i, float constant_d, float requested, float current_value, float *last_error, float *integral) {
+float step_pid(float constant_p,
+			   float constant_i,
+			   float constant_d,
+			   float requested,
+			   float current_value,
+			   float *last_error,
+			   float *integral) {
     float error = current_value - requested;
 
     float derivitive = error - *last_error;
@@ -40,7 +55,9 @@ float step_pid(float constant_p, float constant_i, float constant_d, float reque
         *integral = 0;
     }
 
-    return constant_p * error + constant_i * *integral + constant_d * derivitive;
+    return constant_p * error +
+    	   constant_i * *integral +
+    	   constant_d * derivitive;
 }
 
 task pid_loop() {
@@ -48,11 +65,11 @@ task pid_loop() {
     SensorValue[left_encoder]  = 0;
     SensorValue[right_encoder] = 0;
 
-    float current_left  = 0;
-    float current_right = 0;
+    //float current_left  = 0;
+    //float current_right = 0;
 
-    float requested_left  = 0;
-    float requested_right = 0;
+    //float requested_left  = 0;
+    //float requested_right = 0;
 
     float last_error_left  = 0;
     float last_error_right = 0;
@@ -66,10 +83,13 @@ task pid_loop() {
         current_left  = SensorValue[left_encoder];
         current_right = SensorValue[right_encoder];
 
+
+        // user control stuff
         float delta_requested_left  = 0;
         float delta_requested_right = 0;
 
         get_requested_delta(&delta_requested_left, &delta_requested_right);
+
 
         if (delta_requested_left == 0 && delta_requested_right == 0) {
             if (reset) {
@@ -90,24 +110,26 @@ task pid_loop() {
             reset = true;
         }
 
-        float new_left  = step_pid(1, 0.0, 0.1,
+
+        float new_left  = step_pid(1, 0.0, 0.5,
         						   requested_left,
         						   current_left,
         						   &last_error_left,
         						   &integral_left);
-        float new_right = step_pid(1, 0.0, 0.1,
+        float new_right = step_pid(1, 0.0, 0.5,
         						   requested_right,
         						   current_right,
         						   &last_error_right,
         						   &integral_right);
 
-        new_left  = clamp(new_left, -127, 127);
-        new_right = clamp(new_right, -127, 127);
-
         if (abs(new_left) < 20) new_left = 0;
         if (abs(new_right) < 20) new_right = 0;
 
-        writeDebugStreamLine("r: %.2f %.2f c: %.2f %.2f n: %.2f %.2f", requested_left, requested_right, current_left, current_right, new_left, new_right);
+        writeDebugStreamLine("r: %.2f %.2f c: %.2f %.2f e: %.2f %.2f", requested_left, requested_right, current_left, current_right, last_error_left, last_error_right);
+
+
+        new_left  = clamp(new_left, -max_speed, max_speed);
+        new_right = clamp(new_right, -max_speed, max_speed);
 
         motor[right_front] = -new_right;
         motor[right_back_middle] = -new_right;
@@ -121,18 +143,131 @@ void init() {
 	stop_tasks_between_mode = true;
 }
 
-task auton() {}
+void forward(float amount) {
+	requested_right -= amount;
+	requested_left += amount;
+}
+void turn(float amount) {
+	requested_right -= amount;
+	requested_left += amount;
+}
 
-task user_control() {
-    startTask(pid_loop);
+bool at_dest(float threshold) {
+	return abs(requested_left - current_left) < threshold &&
+		   abs(requested_right - current_right) < threshold;
+}
+
+void wait_for_dest(int timeout_ticks) {
+	int curr = timeout_ticks;
+	while(!at_dest(10) && curr > 0) {
+		sleep(25);
+		--curr;
+	}
+}
+
+// positive for up, negative for down
+void arm(int power) {
+	motor[arm_left_1] = -power;
+	motor[arm_left_2] = power;
+
+	motor[arm_right_1] = -power;
+	motor[arm_right_2] = power;
+}
+
+void claw(int power) {
+	motor[claw_1] = power;
+    motor[claw_2] = -power;
+}
+
+
+task auton() {
+	startTask(pid_loop);
+
+	SensorValue[claw_potent] = 0;
 
 	SensorValue[left_line_sensor] = 0;
     SensorValue[right_line_sensor] = 0;
 
+    int auton_option = 0;
+
+    switch(auton_option) {
+    case 0:
+    	// Stack a cone onto the static goal
+
+    	// move cone forward and then drive backwards
+  		forward(100);
+    	wait_for_dest(200);
+    	forward(-100);
+    	wait_for_dest(200);
+
+    	arm(127);
+    	sleep(300);
+    	arm(0);
+    	// claw close
+    	claw(127);
+    	sleep(500);
+    	// arm down
+    	claw(0);
+    	arm(-127);
+    	sleep(700)
+    	arm(0);
+
+    	// forwards
+    	forward(100);
+    	wait_for_dest(1000);
+
+    	// claw close
+    	claw(127);
+    	sleep(800);
+    	claw(30);
+
+    	// arm up
+    	arm(127);
+    	sleep(800);
+    	arm(0);
+
+    	// forward
+    	forward(250);
+    	wait_for_dest(1000);
+
+    	sleep(800);
+
+    	// arm down
+    	arm(-127);
+
+    	sleep(400);
+
+    	// claw open
+    	claw(-127);
+    	sleep(400);
+    	arm(0);
+    	claw(0);
+	}
+
+	stopTask(pid_loop);
+}
+
+enum {
+	claw_open = 0,
+	claw_closed = 1,
+}
+
+int requested_claw = claw_closed;
+
+task user_control() {
+    //startTask(pid_loop);
+	SensorValue[claw_potent] = 0;
+
+	SensorValue[left_line_sensor] = 0;
+    SensorValue[right_line_sensor] = 0;
+
+    sleep(1000);
+
     while (true) {
 
-        int r = (vexRT[Ch1] + vexRT[Ch3]);
-        int l = (vexRT[Ch1] - vexRT[Ch3]);
+
+        int r = (vexRT[Ch3] - vexRT[Ch1]);
+        int l = (vexRT[Ch3] + vexRT[Ch1]);
 
         if (abs(l) < 20) l = 0;
         if (abs(r) < 20) r = 0;
@@ -140,8 +275,8 @@ task user_control() {
         motor[right_front] = -r;
         motor[right_back_middle] = -r;
 
-        motor[left_front] = -l;
-        motor[left_back_middle] = -l;
+        motor[left_front] = l;
+        motor[left_back_middle] = l;
 
         int arm_sign = 0;
         if(vexRT[Btn5U] == true) {
@@ -150,29 +285,60 @@ task user_control() {
     		arm_sign = -1;
     	}
 
-    	// Right and left share an axel with their respective number
-    	// TODO: ISNT THIS A REALLY REALLY BAD IDEA!!!!!!
  		motor[arm_left_1] = 127 * -arm_sign;
     	motor[arm_left_2] = 127 * arm_sign;
 
     	motor[arm_right_1] = 127 * -arm_sign;
     	motor[arm_right_2] = 127 * arm_sign;
 
+    	if(vexRT[Btn6U] == true) {
+    		requested_claw = claw_closed;
+    	} else if(vexRT[Btn6D] == true) {
+    		requested_claw = claw_open;
+    	}
+
+    	if(requested_claw == claw_open) {
+    		if(SensorValue[claw_potent] > 2900) {
+    			motor[claw_1] = -127;
+    		} else if(SensorValue[claw_potent] > 2800) {
+				motor[claw_1] = 30;
+			} else {
+				motor[claw_1] = 0;
+			}
+    	} else if(requested_claw == claw_closed) {
+    		if(SensorValue[claw_potent] < 3000) {
+    			motor[claw_1] = 127;
+    		} else if(SensorValue[claw_potent] < 3000) {
+    			motor[claw_1] = 60;
+    		} else if(SensorValue[claw_potent] < 3300) {
+    			motor[claw_1] = 60;
+    		} else {
+    			motor[claw_1] = 0; // we missed...
+    		}
+    	}
+
+    	/*
     	int claw_sign = 0;
         if(vexRT[Btn6U] == true) {
         	claw_sign = 1;
     	} else if(vexRT[Btn6D] == true) {
     		claw_sign = -1;
     	}
+    	*/
+    	bLCDBacklight = true;
+    	clearLCDLine(0);
+    	displayLCDNumber(0, 0, SensorValue[claw_potent], 2);
 
-    	motor[claw_1] = 127 * claw_sign;
-    	motor[claw_2] = 127 * -claw_sign;
+    	//motor[claw_1] = 127 * claw_sign;
+    	//motor[claw_2] = 127 * -claw_sign;
 
+    	/*
   		if(SensorValue[left_line_sensor] < 2700 && SensorValue[right_line_sensor] < 2700) {
   			bLCDBacklight = true;
   		} else {
   			bLCDBacklight = false;
   		}
+  		*/
 
   		//clearLCDLine(0);
   		//displayLCDString(0, 0, "s: ");
