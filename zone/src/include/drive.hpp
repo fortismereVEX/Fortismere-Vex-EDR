@@ -227,8 +227,8 @@ public:
 
         //lcdPrint(uart1, 1, "e: %.2f", pid_drive_left.get_error());
         //lcdPrint(uart1, 2, "r: %.2f", pid_drive_left.get_tick());
-        lcdPrint(uart1, 1, "null? %s", !pid_drive_left.get_encoder().get_encoder() ? "true" : "false");
-        lcdPrint(uart1, 2, "v: %d", encoderGet(pid_drive_left.get_encoder().get_encoder()));
+        //lcdPrint(uart1, 1, "null? %s", !pid_drive_left.get_encoder().get_encoder() ? "true" : "false");
+        //lcdPrint(uart1, 2, "v: %d", encoderGet(pid_drive_left.get_encoder().get_encoder()));
 
         if (abs(power_left) < 10) power_left = 0;
         if (abs(power_right) < 10) power_right = 0;

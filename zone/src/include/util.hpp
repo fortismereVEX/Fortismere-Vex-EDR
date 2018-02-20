@@ -155,6 +155,8 @@ public:
 
         return value;
     }
+
+    char get_encoder() { return ime_address; }
 };
 
 template <typename E>
@@ -175,6 +177,8 @@ class pid_helper_real {
 
     bool has_integral;
 
+    mutex m;
+
 public:
     pid_helper_real(E enc, float p, float i, float d, float scale) : enc(enc), p(p), i(i), d(d), scale(scale), has_integral(i != 0.0f) {}
 
@@ -191,13 +195,18 @@ public:
     bool at_dest(int bounds) { return abs(requested - get_tick()) < bounds; }
 
     void reset() {
+        m.lock();
+
         enc.reset();
         last_error = 0;
         integral   = 0;
         requested  = 0.0f;
+
+        m.unlock();
     }
 
     void step() {
+        m.lock();
 
         int   current_tick = get_tick();
         float error        = requested - current_tick;
@@ -214,5 +223,7 @@ public:
         last_error       = error;
 
         result_power = static_cast<int>((p * error) + (i * integral) + (d * derivative));
+
+        m.unlock();
     }
 };

@@ -26,7 +26,6 @@ static int get_delta_time() {
 void pidtask(void *arg) {
 
     while (true) {
-
         int dt = get_delta_time();
 
         pid_drive_left.set_dt(dt);
@@ -69,7 +68,12 @@ static bool at_dest() {
 
 static void wait_for_dest() {
     while (!at_dest())
-        delay(1);
+        delay(21);
+}
+
+static void wait_for_dest(int timeout_ticks) {
+    int start_time = millis();
+    while (!at_dest() && start_time + timeout_ticks > millis()) delay(21);
 }
 
     // TODO: combine these with class drive to make this better
@@ -113,13 +117,15 @@ void autonomous() {
     pid_drive_left.reset();
     pid_drive_right.reset();
 
+    delay(400);
+
     switch (g_autonomous) {
     case 0: {
 #ifdef ROBOT_SAM
         // lift the arm up and the intake out ready to pick up the mobo goal
         motors::claw(-30);
         // start driving forward
-        forward(1500);
+        forward(1600);
         motors::arm(127);
         delay(500);
         motors::intake(-127);
@@ -157,7 +163,7 @@ void autonomous() {
         wait_for_dest();
 
         // turn and bring the arm back up
-        turn(690);
+        turn(750);
         wait_for_dest();
 
         // move forwards to the front of the zones
@@ -165,10 +171,10 @@ void autonomous() {
         wait_for_dest();
 
         // turn slightly and head for the far mobile goal
-        turn(200);
+        turn(500);
         //wait_for_dest();
         forward(1400);
-        wait_for_dest();
+        wait_for_dest(4000);
 
         // bring the intake out
         motors::intake(-127);
@@ -190,7 +196,7 @@ void autonomous() {
 
         // lift up the arm and drive forwards
         motors::lift(127);
-        forward(80);
+        forward(127);
         delay(2000);
 
         // stop driving and stack the cone
