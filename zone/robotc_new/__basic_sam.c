@@ -243,7 +243,7 @@ task auton() {
         claw(0);
         arm(-127);
         sleep(700)
-            arm(0);
+        arm(0);
 
         // drive forwards so that the claw is around the cone
         forward(100);
@@ -256,15 +256,15 @@ task auton() {
 
         // arm up
         arm(127);
-        sleep(800);
+        sleep(1200);
         arm(0);
 
         // forward
-        forward(300);
+        forward(490);
         wait_for_dest(500);
 
         // wait for the rocking to subside before lowering the claw back down
-        sleep(2000);
+        sleep(2500);
 
         // arm down
         arm(-127);
@@ -275,6 +275,15 @@ task auton() {
         sleep(400);
         arm(0);
         claw(0);
+
+        sleep(300);
+
+        claw(127);
+        sleep(200);
+        claw(0);
+
+        forward(-450);
+        wait_for_dest(1000);
 
         /*
         // drive back
