@@ -26,19 +26,6 @@
 #define min(x, a) (x < a ? x : a)
 #define clamp(x, a, b) (min(b, max(a, x)))
 
-// These values are exposed here to allow helper functions to access them
-float requested_left  = 0.0;
-float requested_right = 0.0;
-
-float current_left  = 0.0;
-float current_right = 0.0;
-
-float integral_left;
-float integral_right;
-
-float last_error_left;
-float last_error_right;
-
 float max_speed = 60.0;
 
 void get_requested_delta(float *left, float *right) {
@@ -72,29 +59,43 @@ float step_pid(float  constant_p,
            constant_d * derivitive;
 }
 
-/*
-task pid_loop() {
+
+// These values are exposed here to allow helper functions to access them
+float drive_requested_left  = 0.0;
+float drive_requested_right = 0.0;
+
+float drive_current_left  = 0.0;
+float drive_current_right = 0.0;
+
+float drive_integral_left;
+float drive_integral_right;
+
+float drive_last_error_left;
+float drive_last_error_right;
+
+
+task drive_pid() {
     // clear out the encoder
     //SensorValue[left_encoder]  = 0;
     //SensorValue[right_encoder] = 0;
 
-    current_left  = 0;
-    current_right = 0;
+    drive_current_left  = 0;
+    drive_current_right = 0;
 
-    requested_left  = 0;
-    requested_right = 0;
+    drive_requested_left  = 0;
+    drive_requested_right = 0;
 
-    last_error_left  = 0;
-    last_error_right = 0;
+    drive_last_error_left  = 0;
+    drive_last_error_right = 0;
 
-    integral_left  = 0;
-    integral_right = 0;
+    drive_integral_left  = 0;
+    drive_integral_right = 0;
 
     bool reset = true;
 
     while (true) {
-        current_left  = SensorValue[left_encoder];
-        current_right = SensorValue[right_encoder];
+        drive_current_left  = SensorValue[encoder_left];
+        drive_current_right = SensorValue[encoder_right];
 
         // Since pid is only used in autonomous this code is commented out to prevent future problems.
         /*
@@ -123,35 +124,35 @@ task pid_loop() {
 
             reset = true;
         }
+		*/
 
-
-        float new_left  = step_pid(1, 0.0, 1,
-                                  requested_left,
-                                  current_left,
-                                  &last_error_left,
-                                  &integral_left);
-        float new_right = step_pid(1, 0.0, 1,
-                                   requested_right,
-                                   current_right,
-                                   &last_error_right,
-                                   &integral_right);
+        float new_left  = step_pid(0.2, 0.0, 0.1,
+                                  drive_requested_left,
+                                  drive_current_left,
+                                  &drive_last_error_left,
+                                  &drive_integral_left);
+        float new_right = step_pid(0.2, 0.0, 0.1,
+                                   drive_requested_right,
+                                   drive_current_right,
+                                   &drive_last_error_right,
+                                   &drive_integral_right);
 
         if (abs(new_left) < 20) new_left = 0;
         if (abs(new_right) < 20) new_right = 0;
 
-        writeDebugStreamLine("r: %.2f %.2f c: %.2f %.2f e: %.2f %.2f", requested_left, requested_right, current_left, current_right, last_error_left, last_error_right);
+        writeDebugStreamLine("r: %.2f %.2f c: %.2f %.2f e: %.2f %.2f", drive_requested_left, drive_requested_right, drive_current_left, drive_current_right, drive_last_error_left, drive_last_error_right);
 
         new_left  = clamp(new_left, -max_speed, max_speed);
         new_right = clamp(new_right, -max_speed, max_speed);
 
-        motor[right_middle]       = -new_right;
+        motor[right_middle ]       = -new_right;
         motor[right_front_back] = -new_right;
 
         motor[left_middle]       = -new_left;
         motor[left_front_back] = -new_left;
 	}
 }
-*/
+
 
 float lift_requested_left  = 2100;
 float lift_requested_right = 2100;
@@ -262,19 +263,19 @@ void init() {
 }
 
 void forward(float amount) {
-    requested_right -= amount;
-    requested_left += amount;
+    drive_requested_right -= amount;
+    drive_requested_left += amount;
 }
 void turn(float amount) {
-    requested_right += amount;
-    requested_left += amount;
+    drive_requested_right += amount;
+    drive_requested_left += amount;
 }
 
 bool at_dest(float threshold) {
-    if (abs(requested_left - current_left) < threshold &&
-        abs(requested_right - current_right) < threshold) {
-        integral_left  = 0;
-        integral_right = 0;
+    if (abs(drive_requested_left - drive_current_left) < threshold &&
+        abs(drive_requested_right - drive_current_right) < threshold) {
+        drive_integral_left  = 0;
+        drive_integral_right = 0;
         return true;
     }
 
@@ -283,7 +284,7 @@ bool at_dest(float threshold) {
 
 void wait_for_dest(int timeout_ticks) {
     int curr = timeout_ticks;
-    while (!at_dest(20) && curr >= 0) {
+    while (!at_dest(200) && curr >= 0) {
         sleep(25);
         --curr;
         //clearLCDLine(0);
@@ -292,10 +293,10 @@ void wait_for_dest(int timeout_ticks) {
 
     if (curr == 0) {
         displayLCDString(0, 0, "MISSED!!");
-        requested_left   = current_left;
-        requested_right  = current_right;
-        last_error_left  = 0;
-        last_error_right = 0;
+        drive_requested_left   = drive_current_left;
+        drive_requested_right  = drive_current_right;
+        drive_last_error_left  = 0;
+        drive_last_error_right = 0;
     }
 }
 
@@ -314,32 +315,6 @@ void claw(int power) {
     motor[roller] = power;
 }
 
-task auton() {
-    // Make sure the pid loop is restarted properly
-    // This will get rid of residue
-    //stopTask(pid_loop);
-    //startTask(pid_loop);
-
-    // Clear other sensors that we might use in the future
-    //SensorValue[claw_potent]       = 0;
-    //SensorValue[left_line_sensor]  = 0;
-    //SensorValue[right_line_sensor] = 0;
-
-    // potential for new
-    int auton_option = 0;
-
-    bLCDBacklight = true;
-    clearLCDLine(0);
-
-    switch (auton_option) {
-    case 0:
-        break;
-    }
-
-    // Stop pid and stop all motors to prevent drifting around
-    //stopTask(pid_loop);
-    all_motors_off();
-}
 
 enum {
     autostack_requested = 0,
@@ -353,6 +328,7 @@ enum {
     autostack_go_down_lift_up,
     autostack_go_down_arm_out,
     autostack_go_down,
+    autostack_finished_arm_up,
     autostack_finished,
 };
 
@@ -360,6 +336,8 @@ int autostack_state = autostack_finished;
 
 int autostack_drop_delay = 0;
 int autostack_predrop_delay = 0;
+
+float autostack_lift_finish_value;
 
 void autostack_frame() {
     writeDebugStream("%d\n", autostack_state);
@@ -369,7 +347,7 @@ void autostack_frame() {
 
     if(autostack_state == autostack_pop_arm_up) {
 		if(SensorValue[potent_arm] > 3000) {
-			arm_request_value_delta(400);
+			arm_request_value_delta(200);
 		} else {
 			autostack_state = autostack_pop_arm_down;
 		}
@@ -377,24 +355,27 @@ void autostack_frame() {
 
 	if(autostack_state == autostack_pop_arm_down) {
 		if(SensorValue[potent_arm] < 3500) {
-			arm_request_value_delta(-400);
+			arm_request_value_delta(-200);
 		} else {
 			autostack_state = autostack_go_up;
 		}
 	}
 
     if (autostack_state == autostack_go_up) {
+    	if(autostack_lift_finish_value == 0) autostack_lift_finish_value = SensorValue[potent_left_lift];
+
         if (SensorValue[sonar_lift] < 20) {
-            lift_request_value_delta(-300);
+            lift_request_value_delta(-150);
         } else {
             lift_hold_current_value();
 
             if(SensorValue[potent_left_lift] > 3000) {
             	lift_request_value_delta(-150);
+            } else if(SensorValue[potent_left_lift] > 3500) {
+        		lift_request_value_delta(-250);
             } else {
             	lift_request_value_delta(-80);
 			}
-
             autostack_state = autostack_top_reached;
         }
     }
@@ -424,7 +405,7 @@ void autostack_frame() {
     if(autostack_state == autostack_release_cone_post_arm_delay) {
     	//lift_request_value_delta(-50);
 
-    	if(autostack_predrop_delay < 13) {
+    	if(autostack_predrop_delay < 5) {
     		autostack_predrop_delay += 1;
     	} else {
     		autostack_predrop_delay = 0;
@@ -433,9 +414,9 @@ void autostack_frame() {
     }
 
     if (autostack_state == autostack_release_cone_lift_down) {
-        lift_request_value_delta(100);
+        lift_request_value_delta(300);
 
-        if (autostack_drop_delay < 5) {
+        if (autostack_drop_delay < 3) {
             autostack_drop_delay += 1;
         } else {
             motor[roller]   = -127;
@@ -446,7 +427,7 @@ void autostack_frame() {
 
     if (autostack_state == autostack_go_down_lift_up) {
         if (SensorValue[sonar_lift] < 25) {
-            lift_request_value_delta(-300);
+            lift_request_value_delta(-400);
         } else {
             lift_hold_current_value();
             autostack_state = autostack_go_down_arm_out;
@@ -455,7 +436,7 @@ void autostack_frame() {
 
     if (autostack_state == autostack_go_down_arm_out) {
         if (SensorValue[potent_arm] < 3300) {
-            arm_request_value_delta(-140);
+            arm_request_value_delta(-70);
         } else {
         	arm_hold_value();
             autostack_state = autostack_go_down;
@@ -463,12 +444,21 @@ void autostack_frame() {
     }
 
     if (autostack_state == autostack_go_down) {
-        if (SensorValue[potent_left_lift] > 2150) {
+        if (SensorValue[potent_left_lift] > autostack_lift_finish_value) {
             lift_request_value_delta(300);
         } else {
         	lift_hold_current_value();
-            autostack_state = autostack_finished;
+            autostack_state = autostack_finished_arm_up;
         }
+    }
+
+    if(autostack_state == autostack_finished_arm_up) {
+    	if(SensorValue[potent_arm] < 2400) {
+    		arm_request_value_delta(140);
+    	} else {
+    		arm_hold_value();
+    		autostack_state = autostack_finished;
+    	}
     }
 
     if (autostack_state == autostack_finished) {
@@ -477,9 +467,123 @@ void autostack_frame() {
 
         motor[arm_left]  = 0;
         motor[arm_right] = 0;
+
+        autostack_lift_finish_value = 0;
     }
 
-    wait1Msec(25);
+    wait1Msec(10);
+}
+
+void auton_autostack_helper() {
+	int autostack_timeout = 0;
+	autostack_state = autostack_requested;
+	while(autostack_state != autostack_finished) {
+		autostack_frame();
+		if(autostack_timeout == 300) autostack_state = autostack_go_down_arm_out;
+		autostack_timeout += 1;
+	}
+}
+
+task auton() {
+    // Make sure the pid loop is restarted properly
+    // This will get rid of residue
+    //stopTask(pid_loop);
+    //startTask(pid_loop);
+
+    // Clear other sensors that we might use in the future
+    //SensorValue[claw_potent]       = 0;
+    //SensorValue[left_line_sensor]  = 0;
+    //SensorValue[right_line_sensor] = 0;
+
+	SensorValue[encoder_left] = 0;
+	SensorValue[encoder_right] = 0;
+
+	stopTask(drive_pid);
+	startTask(drive_pid);
+
+	stopTask(arm_pid_loop);
+	startTask(arm_pid_loop);
+
+	stopTask(lift_pid_loop);
+	startTask(lift_pid_loop);
+
+    // potential for new
+    int auton_option = 0;
+
+    // release the kraken
+    lift_request_value_delta(-1000);
+
+    bLCDBacklight = true;
+    clearLCDLine(0);
+
+    switch (auton_option) {
+    case 0:
+    	motor[roller] = 30;
+
+    	motor[mogo] = 127;
+    	wait1Msec(500);
+    	forward(1500);
+    	wait1Msec(1500);
+    	motor[mogo] = 0;
+
+    	wait_for_dest(1000);
+
+    	motor[mogo] =  -127;
+    	wait1Msec(2000);
+    	motor[mogo] = -15;
+
+    	lift_request_value_delta(2000);
+
+    	wait1Msec(1000);
+
+    	// TODO: autostack
+		auton_autostack_helper();
+		motor[roller] = 30;
+
+    	lift_request_value_delta(-500);
+
+    	forward(300);
+    	wait_for_dest(1000);
+
+    	motor[roller] = 30;
+    	lift_request_value_delta(1000);
+    	arm_request_value_delta(1000);
+
+    	wait1Msec(1000);
+
+    	auton_autostack_helper();
+
+    	forward(-800);
+    	wait_for_dest(1000);
+
+    	turn(850);
+
+    	wait_for_dest(1000);
+
+    	forward(800);
+
+    	wait_for_dest(1000);
+
+    	lift_request_value_delta(-1000);
+    	wait1Msec(500);
+
+    	motor[mogo] = 127;
+    	wait1Msec(2000);
+    	motor[mogo] = 0;
+
+    	forward(-500);
+
+    	wait_for_dest(1000);
+
+    	// put the arm down now we are done
+    	lift_request_value_delta(2000);
+
+    	break;
+    }
+
+    // Stop pid and stop all motors to prevent drifting around
+    //stopTask(pid_loop);
+    all_motors_off();
 }
 
 // Some state variables for persistance
@@ -499,6 +603,8 @@ int requested_mogo = mogo_up;
 
 task user_control() {
     sleep(500);
+
+    stopTask(lift_pid_loop);
 
     startTask(lift_pid_loop);
     startTask(arm_pid_loop);
