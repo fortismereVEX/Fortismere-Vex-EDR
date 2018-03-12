@@ -26,7 +26,7 @@
 #define min(x, a) (x < a ? x : a)
 #define clamp(x, a, b) (min(b, max(a, x)))
 
-float max_speed = 60.0;
+float max_speed = 127.0;
 
 void get_requested_delta(float *left, float *right) {
     int r = (vexRT[Ch1] - vexRT[Ch3]);
@@ -72,6 +72,10 @@ float drive_integral_right;
 
 float drive_last_error_left;
 float drive_last_error_right;
+
+float drive_constant_p = 0.2;
+float drive_constant_i = 0.0;
+float drive_constant_d = 0.1;
 
 
 task drive_pid() {
@@ -174,8 +178,6 @@ task lift_pid_loop() {
 
     while (true) {
         if (lift_disabled) {
-            motor[lift_left]  = 0;
-            motor[lift_right] = 0;
             continue;
         }
 
@@ -210,11 +212,11 @@ task lift_pid_loop() {
 float lift_cone_delta = 200;
 
 void lift_request_value_delta(float delta) {
-    lift_requested_left -= delta;
-    lift_requested_right -= delta;
+    lift_requested_left += delta;
+    lift_requested_right += delta;
 
-    lift_requested_left  = clamp(lift_requested_left, 2100, 3800);
-    lift_requested_right = clamp(lift_requested_right, 2100, 3800);
+    lift_requested_left  = clamp(lift_requested_left, 600, 1900);
+    lift_requested_right = clamp(lift_requested_right, 600, 1900);
 }
 
 void lift_hold_current_value() {
@@ -225,15 +227,19 @@ void lift_hold_current_value() {
 float arm_requested = 3600;
 float arm_current   = 0;
 
+bool arm_disabled = false;
+
 task arm_pid_loop() {
     float last_error;
 
     float integral = 0.0;
 
     while (true) {
+    	if(arm_disabled) continue;
+
         arm_current = SensorValue[potent_arm];
 
-        float new_value = step_pid(0.2, 0.0, 0.1,
+        float new_value = step_pid(0.15, 0.0, 0.3,
                                    arm_requested,
                                    arm_current,
                                    &last_error,
@@ -251,7 +257,7 @@ task arm_pid_loop() {
 void arm_request_value_delta(float delta) {
     arm_requested -= delta;
 
-    arm_requested = clamp(arm_requested, 2100, 3600);
+    arm_requested = clamp(arm_requested, 1750, 4000);
 }
 
 void arm_hold_value() {
@@ -285,7 +291,7 @@ bool at_dest(float threshold) {
 void wait_for_dest(int timeout_ticks) {
     int curr = timeout_ticks;
     while (!at_dest(200) && curr >= 0) {
-        sleep(25);
+        wait1Msec(10);
         --curr;
         //clearLCDLine(0);
         //displayLCDNumber(0, 0, curr, 2);
@@ -344,6 +350,9 @@ void autostack_frame() {
     if (autostack_state == autostack_finished) return; // nothing to do
 
     if (autostack_state == autostack_requested) autostack_state = autostack_go_up;
+
+    lift_disabled = false;
+    arm_disabled = false;
 
     if(autostack_state == autostack_pop_arm_up) {
 		if(SensorValue[potent_arm] > 3000) {
@@ -479,9 +488,12 @@ void auton_autostack_helper() {
 	autostack_state = autostack_requested;
 	while(autostack_state != autostack_finished) {
 		autostack_frame();
-		if(autostack_timeout == 300) autostack_state = autostack_go_down_arm_out;
+		if(autostack_timeout >= 200) autostack_state = autostack_go_down_arm_out;
+		if(autostack_timeout >= 300) autostack_state = autostack_finished;
 		autostack_timeout += 1;
 	}
+
+	autostack_timeout = 0;
 }
 
 task auton() {
@@ -512,18 +524,20 @@ task auton() {
 
     // release the kraken
     lift_request_value_delta(-1000);
+    arm_request_value_delta(3000);
 
     bLCDBacklight = true;
     clearLCDLine(0);
 
     switch (auton_option) {
     case 0:
-    	motor[roller] = 30;
+
+    	motor[roller] = 50;
 
     	motor[mogo] = 127;
-    	wait1Msec(500);
-    	forward(1500);
-    	wait1Msec(1500);
+    	wait1Msec(1000);
+    	forward(1600);
+    	wait1Msec(1000);
     	motor[mogo] = 0;
 
     	wait_for_dest(1000);
@@ -532,31 +546,48 @@ task auton() {
     	wait1Msec(2000);
     	motor[mogo] = -15;
 
+    	// go down drop first cone
+
     	lift_request_value_delta(2000);
 
-    	wait1Msec(1000);
+    	wait1Msec(500);
 
-    	// TODO: autostack
-		auton_autostack_helper();
-		motor[roller] = 30;
+    	motor[roller] = -127;
+    	wait1Msec(500);
 
-    	lift_request_value_delta(-500);
+
+
+    	// second cone starts here
 
     	forward(300);
     	wait_for_dest(1000);
 
-    	motor[roller] = 30;
-    	lift_request_value_delta(1000);
-    	arm_request_value_delta(1000);
+    	lift_request_value_delta(-1000);
+    	wait1Msec(200);
+    	arm_request_value_delta(-3000);
+    	motor[roller] = 100;
+    	wait1Msec(500);
 
-    	wait1Msec(1000);
+    	// lift all the way down
+    	lift_request_value_delta(1000);
+
+    	wait1Msec(700);
+
+    	forward(-1750);
 
     	auton_autostack_helper();
 
-    	forward(-800);
+	   	// STACKING FINISHES HERE
+
+    	motor[roller] = 0;
+
     	wait_for_dest(1000);
 
-    	turn(850);
+    	lift_request_value_delta(-600);
+    	arm_request_value_delta(2000);
+
+    	// TODO: NEGATIVE FOR RED
+    	turn(-650);
 
     	wait_for_dest(1000);
 
@@ -564,14 +595,26 @@ task auton() {
 
     	wait_for_dest(1000);
 
-    	lift_request_value_delta(-1000);
-    	wait1Msec(500);
+    	// TODO: negative for RED
+    	turn(-400);
+
+    	wait_for_dest(1000);
+
+    	forward(1000);
+
+    	wait1Msec(300);
 
     	motor[mogo] = 127;
-    	wait1Msec(2000);
-    	motor[mogo] = 0;
+
+    	wait1Msec(300);
+
+    	wait_for_dest(100);
 
     	forward(-500);
+
+    	motor[mogo] = -127;
+    	wait1Msec(1000);
+    	motor[mogo] = 0;
 
     	wait_for_dest(1000);
 
@@ -600,6 +643,8 @@ enum {
     mogo_up   = 1,
 };
 int requested_mogo = mogo_up;
+
+bool lift_changing_now = false;
 
 task user_control() {
     sleep(500);
@@ -638,11 +683,22 @@ task user_control() {
         autostack_frame();
 
         if (vexRT[Btn8L] == true) {
-            autostack_state = autostack_finished;
+            autostack_state = autostack_go_down_arm_out;
+        }
+        if(vexRT[Btn7L] == true) {
+        	autostack_state = autostack_finished;
         }
 
         // check whether autostack is active in order to see whether the user can do controls right now
-        if (autostack_state != autostack_finished) continue;
+        if (autostack_state != autostack_finished) {
+        	lift_disabled = false;
+        	continue;
+        } else {
+        	lift_request_value_delta(1000);
+    		lift_disabled = true;
+
+    		//arm_request_value_delta(-1000);
+        }
 
         if (vexRT[Btn7R] == true) {
             lift_disabled = !lift_disabled;
@@ -651,15 +707,22 @@ task user_control() {
         // move the arm
         int lift_sign = 0;
         if (vexRT[Btn6U] == true) {
-            lift_sign = -1;
-        } else if (vexRT[Btn6D] == true) {
             lift_sign = 1;
-        }
+        } else if (vexRT[Btn6D] == true) {
+            lift_sign = -1;
+        }/* else if(lift_changing_now == true) {
+        	lift_hold_current_value();
+        	lift_changing_now = false;
+        }*/
 
-        //motor[lift_left] = 127 * -lift_sign;
-        //motor[lift_right] = 127 * lift_sign;
+        //if(lift_sign != 0) lift_changing_now = true;
+        //lift_disabled = lift_changing_now;
 
-        lift_request_value_delta(lift_sign * 2);
+        //if(lift_changing_now) {
+        	motor[lift_left] = 127 * -lift_sign;
+        	motor[lift_right] = 127 * lift_sign;
+		//}
+        //lift_request_value_delta(lift_sign * 2);
 
         int arm_sign = 0;
         if (vexRT[Btn5U] == true) {
@@ -668,7 +731,7 @@ task user_control() {
             arm_sign = -1;
         }
 
-        arm_request_value_delta(arm_sign * 4);
+        arm_request_value_delta(arm_sign * 10);
 
         //motor[arm_left] = 127 * -arm_sign;
         //motor[arm_right] = 127 * arm_sign;
@@ -691,7 +754,7 @@ task user_control() {
         if (requested_roller == roller_open) {
             motor[roller] = -127;
         } else if (requested_roller == roller_closed) {
-            motor[roller] = 30;
+            motor[roller] = 50;
         } else {
             motor[roller] = 0;
         }
@@ -712,4 +775,24 @@ task user_control() {
             autostack_state = autostack_requested; // LETS GO BOIS
         }
     }
+}
+
+// silly fix because robotc doesnt parse code properly... :(
+typedef float *pfloat;
+pfloat constant_list[] = {
+	&drive_constant_p,
+	&drive_constant_i,
+	&drive_constant_d,
+};
+
+string constant_list_strings[] = {
+	"drive_constant_p",
+	"drive_constant_i",
+	"drive_constant_d",
+};
+
+// LCD CODE
+
+task lcd_task() {
+
 }
