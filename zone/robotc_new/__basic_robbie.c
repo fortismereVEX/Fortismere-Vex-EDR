@@ -257,7 +257,7 @@ task arm_pid_loop() {
 void arm_request_value_delta(float delta) {
     arm_requested -= delta;
 
-    arm_requested = clamp(arm_requested, 1750, 4000);
+    arm_requested = clamp(arm_requested, 1750, 3450);
 }
 
 void arm_hold_value() {
