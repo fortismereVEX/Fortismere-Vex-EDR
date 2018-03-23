@@ -1,10 +1,10 @@
 #pragma config(Sensor, in1,    potent_left_lift, sensorPotentiometer)
 #pragma config(Sensor, in2,    potent_right_lift, sensorPotentiometer)
-#pragma config(Sensor, in3,    potent_arm,     sensorPotentiometer)
+#pragma config(Sensor, in3,    potent_arm_left, sensorPotentiometer)
+#pragma config(Sensor, in4,    potent_arm_right, sensorPotentiometer)
 #pragma config(Sensor, in8,    gyro,           sensorGyro)
 #pragma config(Sensor, dgtl1,  encoder_left,   sensorQuadEncoder)
 #pragma config(Sensor, dgtl3,  encoder_right,  sensorQuadEncoder)
-#pragma config(Sensor, dgtl5,  ,               sensorQuadEncoder)
 #pragma config(Motor,  port1,           roller,        tmotorNone, openLoop)
 #pragma config(Motor,  port2,           left_middle,   tmotorNone, openLoop)
 #pragma config(Motor,  port3,           arm_left,      tmotorNone, openLoop)
@@ -80,8 +80,8 @@ float drive_constant_d = 0.1;
 
 task drive_pid() {
     // clear out the encoder
-    SensorValue[left_encoder]  = 0;
-    SensorValue[right_encoder] = 0;
+    SensorValue[encoder_left]  = 0;
+    SensorValue[encoder_right] = 0;
 
     drive_current_left  = 0;
     drive_current_right = 0;
@@ -224,44 +224,60 @@ void lift_hold_current_value() {
     lift_requested_right = lift_current_right;
 }
 
-float arm_requested = 3600;
-float arm_current   = 0;
+float arm_requested_left = 3600;
+float arm_requested_right = 3600;
+float arm_current_left   = 0;
+float arm_current_right = 0;
 
 bool arm_disabled = false;
 
 task arm_pid_loop() {
-    float last_error;
+    float last_error_left;
+    float last_error_right;
 
-    float integral = 0.0;
+    float integral_left = 0.0;
+	float integral_right
 
     while (true) {
     	if(arm_disabled) continue;
 
-        arm_current = SensorValue[potent_arm];
+        arm_current_left = SensorValue[potent_arm_left];
+		arm_current_right = SensorValue[potent_arm_right]
 
-        float new_value = step_pid(0.2, 0.0, 0.3,
-                                   arm_requested,
-                                   arm_current,
-                                   &last_error,
-                                   &integral);
+        float new_left = step_pid(0.2, 0.0, 0.3,
+                                   arm_requested_left,
+                                   arm_current_left,
+                                   &last_error_left,
+                                   &integral_left);
 
-        new_value = clamp(new_value, -127, 127);
+        float new_right = step_pid(0.1, 0.0, 0.3,
+        						   arm_requested_right,
+        						   arm_current_right,
+        						   &last_error_right,
+        						   &integral_right);
 
-        motor[arm_left]  = new_value;
-        motor[arm_right] = -new_value;
+        new_left = clamp(new_left, -127, 127);
+		new_right = clamp(new_right, -127, 127);
+
+
+        motor[arm_left]  = new_left;
+        motor[arm_right] = -new_right;
 
         wait1Msec(25);
     }
 }
 
 void arm_request_value_delta(float delta) {
-    arm_requested -= delta;
+    arm_requested_left -= delta;
+	arm_requested_right -= delta;
 
-    arm_requested = clamp(arm_requested, 1750, 3500);
+    arm_requested_left = clamp(arm_requested_left, 1750, 3800);
+    arm_requested_right= clamp(arm_requested_right, 1750, 3800);
 }
 
 void arm_hold_value() {
-    arm_requested = arm_current;
+    arm_requested_left = arm_current_left;
+    arm_requested_right = arm_current_right;
 }
 
 void init() {
@@ -364,9 +380,10 @@ void autostack_frame() {
 	//displayLCDNumber(1, 12, autostack_state);
     if (autostack_state == autostack_finished) return; // nothing to do
 
-	displayLCDNumber(0, 0, autostack_state);
-	displayLCDNumber(0, 3, SensorValue[potent_left_lift]);
-	displayLCDNumber(0, 8, SensorValue[potent_arm]);
+	//displayLCDNumber(0, 0, autostack_state);
+	displayLCDNumber(0, 0, SensorValue[potent_left_lift]);
+	displayLCDNumber(0, 5, SensorValue[potent_arm_left]);
+	displayLCDNumber(0, 9, SensorValue[potent_arm_right]);
 	displayLCDNumber(1, 0, autostack_current_height);
 	displayLCDNumber(1, 3, autostack_lift_finish_value, 2);
 
@@ -376,7 +393,7 @@ void autostack_frame() {
     arm_disabled = false;
 
     if(autostack_state == autostack_pop_arm_up) {
-		if(SensorValue[potent_arm] > 3000) {
+		if(SensorValue[potent_arm_left] > 3000) {
 			arm_request_value_delta(200);
 		} else {
 			autostack_state = autostack_pop_arm_down;
@@ -384,7 +401,7 @@ void autostack_frame() {
 	}
 
 	if(autostack_state == autostack_pop_arm_down) {
-		if(SensorValue[potent_arm] < 3500) {
+		if(SensorValue[potent_arm_left] < 3500) {
 			arm_request_value_delta(-200);
 		} else {
 			autostack_state = autostack_go_up;
@@ -404,7 +421,7 @@ void autostack_frame() {
     }
 
     if (autostack_state == autostack_top_reached) {
-        if (SensorValue[potent_arm] > 1850) {
+        if (SensorValue[potent_arm_left] > 1850) {
             arm_request_value_delta(100);
         } else {
             arm_hold_value();
@@ -446,7 +463,7 @@ void autostack_frame() {
     }
 
     if (autostack_state == autostack_go_down_arm_out) {
-        if (SensorValue[potent_arm] < 3400) {
+        if (SensorValue[potent_arm_left] < 3400) {
             arm_request_value_delta(-140);
         } else {
         	arm_hold_value();
@@ -467,7 +484,7 @@ void autostack_frame() {
     }
 
     if(autostack_state == autostack_finished_arm_up) {
-    	if(SensorValue[potent_arm] < 2400) {
+    	if(SensorValue[potent_arm_left] < 2400) {
     		arm_request_value_delta(70);
     	} else {
     		arm_hold_value();
@@ -676,8 +693,11 @@ task user_control() {
 
 	        //displayLCDNumber(0, 12, autostack_state);
 
-       		displayLCDNumber(0, 0, SensorValue[encoder_left]);
-       		displayLCDNumber(1, 0, SensorValue[encoder_right]);
+       		//displayLCDNumber(0, 0, SensorValue[encoder_left]);
+       		//displayLCDNumber(1, 0, SensorValue[encoder_right]);
+
+        	displayLCDNumber(0, 0, SensorValue[potent_arm_left];
+        	displayLCDNumber(1, 0, SensorValue[potent_arm_right];
 	   	}
 
         int r = (vexRT[Ch3] - vexRT[Ch1]);
